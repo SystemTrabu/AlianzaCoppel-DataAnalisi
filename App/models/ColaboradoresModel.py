@@ -7,4 +7,4 @@ class Usuario(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     nombre = db.Column(db.String(100), nullable=False)
     N_Empleado=db.Column(db.Integer)
-    microempresarios = db.relationship('Microempresario', backref='colaborador', lazy=True)
+    microempresarios = db.relationship('MicroEmpresario', backref='colaborador', lazy=True)

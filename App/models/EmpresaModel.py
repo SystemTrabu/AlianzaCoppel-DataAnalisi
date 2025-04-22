@@ -8,4 +8,4 @@ class Empresa(db.Model):
     nombre = db.Column(db.String(100), nullable=False)
     tipo = db.Column(db.String(100), nullable=False)
     fecha = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
-    microempresarios = db.relationship('Microempresario', backref='empresa', lazy=True)
+    microempresarios = db.relationship('MicroEmpresario', backref='empresa', lazy=True)

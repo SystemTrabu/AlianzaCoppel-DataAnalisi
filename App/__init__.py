@@ -17,4 +17,6 @@ def create_app():
     # Importa los modelos para que Flask-Migrate los detecte
     from . import models
 
+    from .AnaisisDatos.AnalisisControlls import analisis_bp
+    app.register_blueprint(analisis_bp)
     return app
