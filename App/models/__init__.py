@@ -1,6 +1,9 @@
 from flask_sqlalchemy import SQLAlchemy
+from flask_marshmallow import Marshmallow
 
 db = SQLAlchemy()
+ma = Marshmallow()
+
 
 # models/__init__.py o donde agrupes los modelos
 

@@ -3,7 +3,7 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from .config import Config
-from .models import db  # db se importa de models/__init__.py
+from .models import db, ma  
 
 migrate = Migrate()
 
@@ -12,11 +12,18 @@ def create_app():
     app.config.from_object(Config)
 
     db.init_app(app)
+    ma.init_app(app)  
     migrate.init_app(app, db)
 
     # Importa los modelos para que Flask-Migrate los detecte
     from . import models
 
+    # Registra los blueprints al final para evitar imports circulares
     from .AnaisisDatos.AnalisisControlls import analisis_bp
     app.register_blueprint(analisis_bp)
+
+    from .MicroEmpresarios.MicroEmpresariosControlls import MicroEmpresario_bp
+    app.register_blueprint(MicroEmpresario_bp)
+
     return app
+
