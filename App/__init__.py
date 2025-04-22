@@ -18,5 +18,8 @@ def create_app():
     from . import models
 
     from .AnaisisDatos.AnalisisControlls import analisis_bp
+    from .Colaboradores.ColaboradorController import colaborador_bp
     app.register_blueprint(analisis_bp)
+    app.register_blueprint(colaborador_bp)
+
     return app

@@ -184,7 +184,6 @@ def obtener_segmento_microempresario(id):
 
 @analisis_bp.route('/colaboradores/efectividad', methods=['GET'])
 def obtener_efectividad_colaboradores():
-    """Endpoint para obtener efectividad de colaboradores"""
     try:
         from .Utils import DataProcessor
         
@@ -200,7 +199,6 @@ def obtener_efectividad_colaboradores():
             
             colab_performance.columns = ['cantidad_usuarios', 'promedio_cursos', 'total_cursos']
             
-            # Convertir a formato para API
             colaboradores_data = []
             for colaborador_id in colab_performance.index:
                 colaboradores_data.append({
@@ -211,7 +209,6 @@ def obtener_efectividad_colaboradores():
                     'efectividad': float(colab_performance.loc[colaborador_id, 'promedio_cursos'])
                 })
             
-            # Ordenar por efectividad
             colaboradores_data = sorted(colaboradores_data, key=lambda x: x['efectividad'], reverse=True)
             
             return jsonify({
