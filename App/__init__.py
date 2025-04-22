@@ -29,5 +29,8 @@ def create_app():
     from .Empresa.EmpresaControlls import Empresas_bp
     app.register_blueprint(Empresas_bp)
 
+    from.Colaboradores.ColaboradorController import colaborador_bp
+    app.register_blueprint(colaborador_bp)
+
     return app
 
