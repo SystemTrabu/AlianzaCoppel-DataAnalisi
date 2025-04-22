@@ -1,6 +1,7 @@
 from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()
+
 class Curso(db.Model):
     __tablename__ = 'cursos'
     id = db.Column(db.Integer, primary_key=True)
