@@ -1,8 +1,7 @@
-# models/area.py
 from . import db
 
 class MicroEmpresario(db.Model):
-    __tablename__ = 'microempresario'  # correcto en singular
+    __tablename__ = 'microempresario' 
 
     id = db.Column(db.Integer, primary_key=True)
     nombre = db.Column(db.String(100), nullable=False)

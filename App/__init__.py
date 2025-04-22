@@ -26,5 +26,8 @@ def create_app():
     from .MicroEmpresarios.MicroEmpresariosControlls import MicroEmpresario_bp
     app.register_blueprint(MicroEmpresario_bp)
 
+    from.Colaboradores.ColaboradorController import colaborador_bp
+    app.register_blueprint(colaborador_bp)
+
     return app
 
