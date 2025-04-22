@@ -7,6 +7,7 @@ contourpy==1.3.2
 cycler==0.12.1
 dotenv==0.9.9
 Flask==3.1.0
+flask-marshmallow==1.3.0
 Flask-Migrate==4.1.0
 Flask-SQLAlchemy==3.1.1
 fonttools==4.57.0
@@ -19,6 +20,8 @@ joblib==1.4.2
 kiwisolver==1.4.8
 Mako==1.3.10
 MarkupSafe==3.0.2
+marshmallow==4.0.0
+marshmallow-sqlalchemy==1.4.2
 matplotlib==3.10.1
 numpy==2.2.5
 packaging==25.0
