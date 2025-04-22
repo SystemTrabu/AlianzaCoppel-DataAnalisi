@@ -13,33 +13,33 @@ class MicroEmpresariosService:
     def obtener(id):
         return  MicroEmpresarioRepository.get_by_id(id)
 
+    
+    @staticmethod
+    def eliminar(id):
+        return  MicroEmpresarioRepository.delete(id)
+
     @staticmethod
     def crear(data):
-        # 1. Extraer datos para MicroEmpresario
+        # 1. Crear primero el negocio (empresa)
+        negocio = Empresa(
+            nombreempresa=data['nombreempresa'],
+            tipo=data['tipo'],
+            fecha=data['fecha']
+        )
+        db.session.add(negocio)
+        db.session.flush()  # Genera el ID de la empresa sin hacer commit
+
+        # 2. Crear MicroEmpresario con empresa_id generado
         empresario = MicroEmpresario(
             nombre=data['nombre'],
             CodigoPostal=data['CodigoPostal'],
             N_telefono=data['N_telefono'],
             Webinars=data['Webinars'],
-            
+            colaborador_id=data.get('colaborador_id'),  # Usa .get por si no lo mandan
+            empresa_id=negocio.id
         )
 
-        # 2. Crear primero el empresario
         db.session.add(empresario)
-        db.session.flush()  # Esto genera el ID sin hacer commit
-
-        # 3. Crear el negocio y asignar el ID del empresario
-        negocio = Empresa(
-            nombre=data['negocio'],
-            direccion=data['direccion_negocio'],
-            ingresos=data['ingresos'],
-            empresario_id=empresario.id
-        )
-
-        db.session.add(negocio)
         db.session.commit()
 
-        return empresario  # O puedes devolver ambos si gustas
-    @staticmethod
-    def eliminar(id):
-        return  MicroEmpresarioRepository.delete(id)
+        return empresario
