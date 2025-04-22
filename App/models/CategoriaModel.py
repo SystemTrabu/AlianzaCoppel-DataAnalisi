@@ -1,6 +1,6 @@
 from flask_sqlalchemy import SQLAlchemy
+from . import db
 
-db = SQLAlchemy()
 
 class Categoria(db.Model):
     __tablename__ = 'categorias'

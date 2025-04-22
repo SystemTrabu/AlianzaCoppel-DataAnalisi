@@ -1,6 +1,6 @@
 from flask_sqlalchemy import SQLAlchemy
+from . import db
 
-db = SQLAlchemy()
 
 class Usuario(db.Model):
     __tablename__ = 'colaborador'
