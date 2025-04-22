@@ -20,6 +20,7 @@ def create_app():
 
     # Registra los blueprints al final para evitar imports circulares
     from .AnaisisDatos.AnalisisControlls import analisis_bp
+    from .Colaboradores.ColaboradorController import colaborador_bp
     app.register_blueprint(analisis_bp)
 
     from .MicroEmpresarios.MicroEmpresariosControlls import MicroEmpresario_bp
