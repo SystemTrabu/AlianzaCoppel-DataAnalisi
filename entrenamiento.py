@@ -37,7 +37,13 @@ nivel_madurez_map = {
 df_combinado['nivel_madurez_num'] = df_combinado['nivel_madurez'].map(nivel_madurez_map)
 
 # Codificar variables categóricas
-df_combinado = pd.get_dummies(df_combinado, columns=['genero', 'tipo_empresa'], drop_first=True)
+df_combinado = pd.get_dummies(df_combinado, columns=['genero', 'tipo_empresa'], drop_first=False)
+
+# Asegurar que todas las columnas estén presentes aunque no existan en el set actual
+for col in ['genero_hombre', 'genero_mujer', 'genero_otro']:
+    if col not in df_combinado.columns:
+        df_combinado[col] = 0
+
 
 # Calcular días desde registro
 df_combinado['dias_desde_registro'] = (pd.to_datetime('today') - 
@@ -86,11 +92,11 @@ plt.show()
 
 
 # Seleccionar características para clustering
-features_clustering = ['edad', 'nivel_madurez_num', 'n_de_empleados', 
+features_clustering = ['edad', 'nivel_madurez_num', 'n_empleados', 
                        'ingresos_semanales', 'dias_desde_registro', 
                        'cursos_ultimos_3meses']
 
-# Preparar el dataset para clustering
+print(df_combinado.columns)
 cluster_data = df_combinado[features_clustering].copy()
 cluster_data = cluster_data.fillna(cluster_data.mean())  # Manejar valores faltantes
 
@@ -123,7 +129,7 @@ df_combinado['cluster'] = kmeans.fit_predict(scaled_data)
 cluster_profiles = df_combinado.groupby('cluster').agg({
     'edad': 'mean',
     'nivel_madurez_num': 'mean',
-    'n_de_empleados': 'mean',
+    'n_empleados': 'mean',
     'ingresos_semanales': 'mean',
     'cursos_ultimos_3meses': 'mean',
     'estado_actividad': lambda x: x.value_counts().index[0] 
@@ -141,9 +147,10 @@ plt.show()
 
 
 # Preparar datos para el modelo predictivo
-X = df_combinado[['edad', 'nivel_madurez_num', 'n_de_empleados', 
+X = df_combinado[['edad', 'nivel_madurez_num', 'n_empleados', 
                  'ingresos_semanales', 'dias_desde_registro',
-                 'genero_hombre', 'genero_mujer']]  # Ajusta según tus columnas finales
+                 'genero_hombre', 'genero_mujer', 'genero_otro']]
+
 y = df_combinado['estado_actividad']
 
 # Manejar valores faltantes
@@ -181,9 +188,13 @@ prob_df = pd.DataFrame(y_probs, columns=clf.classes_)
 # Función para predecir probabilidad para un nuevo microempresario
 def predecir_perfil(edad, nivel_madurez, empleados, ingresos, dias_registro, genero):
     # Crear un array con los datos del nuevo microempresario
+    genero_hombre = 1 if genero == 'hombre' else 0
+    genero_mujer = 1 if genero == 'mujer' else 0
+    genero_otro = 1 if genero == 'otro' else 0
+
     nuevo = np.array([[edad, nivel_madurez, empleados, ingresos, dias_registro, 
-                       1 if genero == 'hombre' else 0, 
-                       1 if genero == 'mujer' else 0]])
+                    genero_hombre, genero_mujer, genero_otro]])
+
     
     # Obtener probabilidades para cada clase
     probs = clf.predict_proba(nuevo)[0]
