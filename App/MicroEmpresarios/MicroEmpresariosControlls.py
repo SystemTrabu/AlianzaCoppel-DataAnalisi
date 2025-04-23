@@ -16,7 +16,7 @@ def get_by_id(id):
         return jsonify({'mensaje': 'No encontrado'}), 404
     return MicroEmpresario_schema.jsonify(colaborador)
 
-@MicroEmpresario_bp.route('/', methods=['POST'])
+@MicroEmpresario_bp.route('/agregar', methods=['POST'])
 def create():
     data = request.get_json()
     colaborador = MicroEmpresariosService.crear(data)
