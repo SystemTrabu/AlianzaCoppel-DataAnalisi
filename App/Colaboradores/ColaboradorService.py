@@ -55,8 +55,6 @@ class ColaboradorService:
                 'Nombre_empresa': m.empresa.nombre_empresa,
                 'Cursos_terminados': cantidad_cursos
             })
-
-
         return resultado
     
     
