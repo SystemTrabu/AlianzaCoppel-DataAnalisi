@@ -12,13 +12,14 @@ class Empresa(db.Model):
     ingresos_semanales =  db.Column(db.Integer, nullable=False)
     microempresarios = db.relationship('MicroEmpresario', backref='empresa', lazy=True)
     antiguedad=  db.Column(db.Integer, nullable=False)
-    def __init__(self, nombre_empresa, tipo_empresa, nivel_madurez, n_empleados, negocio_familiar, ingresos_semanales):
+    def __init__(self, nombre_empresa, tipo_empresa, nivel_madurez, n_empleados, negocio_familiar, ingresos_semanales, antiguedad):
         self.nombre_empresa = nombre_empresa
         self.tipo_empresa = tipo_empresa
         self.nivel_madurez = nivel_madurez
         self.n_empleados = n_empleados
         self.negocio_familiar = negocio_familiar
         self.ingresos_semanales = ingresos_semanales
+        self.antiguedad=  antiguedad
 
     def __repr__(self):
-        return f'Empresa({self.nombre_empresa}, {self.tipo_empresa}, {self.nivel_madurez}, {self.n_empleados}, {self.negocio_familiar}, {self.ingresos_semanales})'
+        return f'Empresa({self.nombre_empresa}, {self.tipo_empresa}, {self.nivel_madurez}, {self.n_empleados}, {self.negocio_familiar}, {self.ingresos_semanales}, {self.antiguedad})'
