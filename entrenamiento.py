@@ -1,237 +1,258 @@
 import pandas as pd
 import numpy as np
-from datetime import datetime, timedelta
-from sklearn.preprocessing import StandardScaler
-from sklearn.cluster import KMeans
-from sklearn.ensemble import RandomForestClassifier
 import matplotlib.pyplot as plt
 import seaborn as sns
-from sqlalchemy import create_engine
-
-
-engine = create_engine('postgresql://postgres:HRxlTXYjtnYgTVbehhRqwnCEnopFFegE@shuttle.proxy.rlwy.net:40252/railway')
-
-# Extraer datos de las tablas
-query_usuarios = "SELECT * FROM microempresario"
-query_empresas = "SELECT * FROM empresas" 
-query_cursos = 'SELECT * FROM "CursosTerminados"'
-
-usuarios_df = pd.read_sql(query_usuarios, engine)
-empresas_df = pd.read_sql(query_empresas, engine)
-cursos_df = pd.read_sql(query_cursos, engine)
-
-
-
-df_combinado = pd.merge(usuarios_df, empresas_df, left_on='empresa_id', right_on='id', how='left')
-
-# Preparar y limpiar datos
-# Calcular edad
-
-df_combinado['edad'] = pd.to_datetime('today').year - pd.to_datetime(df_combinado['fecha_nacimiento']).dt.year
-
-nivel_madurez_map = {
-    'bajo': 1, 
-    'medio': 2, 
-    'alto': 3
-}
-df_combinado['nivel_madurez_num'] = df_combinado['nivel_madurez'].map(nivel_madurez_map)
-
-# Codificar variables categóricas
-df_combinado = pd.get_dummies(df_combinado, columns=['genero', 'tipo_empresa'], drop_first=False)
-
-# Asegurar que todas las columnas estén presentes aunque no existan en el set actual
-for col in ['genero_hombre', 'genero_mujer', 'genero_otro']:
-    if col not in df_combinado.columns:
-        df_combinado[col] = 0
-
-
-# Calcular días desde registro
-df_combinado['dias_desde_registro'] = (pd.to_datetime('today') - 
-                                       pd.to_datetime(df_combinado['fecha_registro'])).dt.days
-
-# Calcular métricas de actividad
-fecha_limite = datetime.now() - timedelta(days=90)
-cursos_recientes = cursos_df[pd.to_datetime(cursos_df['fecha']) >= fecha_limite]
-
-# Contar cursos por usuario en los últimos 3 meses
-cursos_por_usuario = cursos_recientes.groupby('microempresario_id').size().reset_index(name='cursos_ultimos_3meses')
-df_combinado = pd.merge(df_combinado, cursos_por_usuario, left_on='id_x', right_on='microempresario_id', how='left')
-df_combinado['cursos_ultimos_3meses'] = df_combinado['cursos_ultimos_3meses'].fillna(0)
-print(df_combinado.columns.tolist())
-print(df_combinado.head())
-# Clasificar a los usuarios según su actividad
-df_combinado['estado_actividad'] = pd.cut(
-    df_combinado['cursos_ultimos_3meses'],
-    bins=[-1, 5, 15, float('inf')],
-    labels=['inactivo', 'latente', 'activo']
-)
-
-
-# Análisis exploratorio básico
-print(df_combinado['estado_actividad'].value_counts())
-
-# Visualizar distribución de actividad por nivel educativo
-plt.figure(figsize=(12, 6))
-sns.countplot(x='nivel_educativo', hue='estado_actividad', data=df_combinado)
-plt.title('Distribución de actividad por nivel educativo')
-plt.xticks(rotation=45)
-plt.show()
-
-# Visualizar distribución de actividad por edad
-plt.figure(figsize=(12, 6))
-sns.boxplot(x='estado_actividad', y='edad', data=df_combinado)
-plt.title('Distribución de edad por estado de actividad')
-plt.show()
-
-# Visualizar distribución de actividad por nivel de madurez del negocio
-plt.figure(figsize=(12, 6))
-sns.countplot(x='nivel_madurez_num', hue='estado_actividad', data=df_combinado)
-plt.title('Distribución de actividad por nivel de madurez')
-plt.xticks([0, 1, 2], ['Idea de negocio', 'Recién iniciado', '3+ años'])
-plt.show()
-
-
-# Seleccionar características para clustering
-features_clustering = ['edad', 'nivel_madurez_num', 'n_empleados', 
-                       'ingresos_semanales', 'dias_desde_registro', 
-                       'cursos_ultimos_3meses']
-
-print(df_combinado.columns)
-cluster_data = df_combinado[features_clustering].copy()
-cluster_data = cluster_data.fillna(cluster_data.mean())  # Manejar valores faltantes
-
-# Escalar las características
-scaler = StandardScaler()
-scaled_data = scaler.fit_transform(cluster_data)
-
-# Determinar el número óptimo de clusters usando el método del codo
-inertia = []
-for k in range(1, 11):
-    kmeans = KMeans(n_clusters=k, random_state=42)
-    kmeans.fit(scaled_data)
-    inertia.append(kmeans.inertia_)
-
-# Visualizar el método del codo
-plt.figure(figsize=(10, 6))
-plt.plot(range(1, 11), inertia, marker='o')
-plt.title('Método del codo para determinar número óptimo de clusters')
-plt.xlabel('Número de clusters')
-plt.ylabel('Inertia')
-plt.grid(True)
-plt.show()
-
-# Basado en el gráfico, elegimos un número óptimo de clusters (por ejemplo, 4)
-n_clusters = 4
-kmeans = KMeans(n_clusters=n_clusters, random_state=42)
-df_combinado['cluster'] = kmeans.fit_predict(scaled_data)
-
-
-cluster_profiles = df_combinado.groupby('cluster').agg({
-    'edad': 'mean',
-    'nivel_madurez_num': 'mean',
-    'n_empleados': 'mean',
-    'ingresos_semanales': 'mean',
-    'cursos_ultimos_3meses': 'mean',
-    'estado_actividad': lambda x: x.value_counts().index[0] 
-}).reset_index()
-
-print("Perfiles de microempresarios:")
-print(cluster_profiles)
-
-# Visualizar la relación entre clusters y estado de actividad
-plt.figure(figsize=(10, 6))
-sns.countplot(x='cluster', hue='estado_actividad', data=df_combinado)
-plt.title('Distribución de estados de actividad por cluster')
-plt.show()
-
-
-
-# Preparar datos para el modelo predictivo
-X = df_combinado[['edad', 'nivel_madurez_num', 'n_empleados', 
-                 'ingresos_semanales', 'dias_desde_registro',
-                 'genero_hombre', 'genero_mujer', 'genero_otro']]
-
-y = df_combinado['estado_actividad']
-
-# Manejar valores faltantes
-X = X.fillna(X.mean())
-
-# Dividir los datos en conjuntos de entrenamiento y prueba
 from sklearn.model_selection import train_test_split
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=42)
-
-# Entrenar un modelo RandomForest
-clf = RandomForestClassifier(n_estimators=100, random_state=42)
-clf.fit(X_train, y_train)
-
-# Evaluar el modelo
-from sklearn.metrics import classification_report, confusion_matrix
-y_pred = clf.predict(X_test)
-print(classification_report(y_test, y_pred))
-
-# Visualizar importancia de características
-importances = pd.DataFrame({
-    'feature': X.columns,
-    'importance': clf.feature_importances_
-}).sort_values('importance', ascending=False)
-
-plt.figure(figsize=(10, 6))
-sns.barplot(x='importance', y='feature', data=importances)
-plt.title('Importancia de las características para predecir estado de actividad')
-plt.show()
-
-
-# Analizar probabilidades para cada clase
-y_probs = clf.predict_proba(X_test)
-prob_df = pd.DataFrame(y_probs, columns=clf.classes_)
-
-# Función para predecir probabilidad para un nuevo microempresario
-def predecir_perfil(edad, nivel_madurez, empleados, ingresos, dias_registro, genero):
-    # Crear un array con los datos del nuevo microempresario
-    genero_hombre = 1 if genero == 'hombre' else 0
-    genero_mujer = 1 if genero == 'mujer' else 0
-    genero_otro = 1 if genero == 'otro' else 0
-
-    nuevo = np.array([[edad, nivel_madurez, empleados, ingresos, dias_registro, 
-                    genero_hombre, genero_mujer, genero_otro]])
-
-    
-    # Obtener probabilidades para cada clase
-    probs = clf.predict_proba(nuevo)[0]
-    
-    # Crear un diccionario con las probabilidades
-    resultado = {clase: prob for clase, prob in zip(clf.classes_, probs)}
-    
-    # Determinar el cluster al que pertenece
-    nuevo_scaled = scaler.transform(nuevo[:, :len(features_clustering)])
-    cluster = kmeans.predict(nuevo_scaled)[0]
-    
-    return {
-        'probabilidades': resultado,
-        'cluster': cluster,
-        'perfil': cluster_profiles[cluster_profiles['cluster'] == cluster].to_dict('records')[0]
-    }
-
-# Ejemplo de uso
-ejemplo = predecir_perfil(
-    edad=35, 
-    nivel_madurez=2, 
-    empleados=3, 
-    ingresos=5000, 
-    dias_registro=60,
-    genero='mujer'
-)
-print("Predicción para nuevo microempresario:")
-print(ejemplo)
-
-
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import classification_report
+from sklearn.preprocessing import StandardScaler, OneHotEncoder
+from sklearn.compose import ColumnTransformer
+from sklearn.pipeline import Pipeline
+from sqlalchemy import create_engine
 import joblib
 
-# Guardar el modelo de clasificación
-joblib.dump(clf, 'modelo_prediccion_microempresarios.pkl')
+# Configuración de visualización
+plt.style.use('ggplot')
+sns.set_palette("husl")
 
-# Guardar el modelo de clustering y el scaler
-joblib.dump(kmeans, 'modelo_clustering_microempresarios.pkl')
-joblib.dump(scaler, 'scaler_microempresarios.pkl')
+# 1. Conexión a la base de datos y extracción de datos
+engine = create_engine('postgresql://postgres:HRxlTXYjtnYgTVbehhRqwnCEnopFFegE@shuttle.proxy.rlwy.net:40252/railway')
 
-print("Modelos guardados correctamente")
+# Cargar datos
+df_empresarios = pd.read_sql("SELECT * FROM microempresario", engine)
+df_empresas = pd.read_sql("SELECT * FROM empresas", engine)
+df_cursos = pd.read_sql('SELECT * FROM "CursosTerminados"', engine)
+
+# 2. Procesamiento de datos
+# Calcular cantidad de cursos por microempresario
+cursos_count = df_cursos.groupby('microempresario_id').size().reset_index(name='cursos_completados')
+
+# Unir datos
+df = pd.merge(df_empresarios, cursos_count, left_on='id', right_on='microempresario_id', how='left')
+df = pd.merge(df, df_empresas, left_on='empresa_id', right_on='id', how='left')
+
+# Rellenar NaN con 0 (para quienes no han completado cursos)
+df['cursos_completados'] = df['cursos_completados'].fillna(0)
+
+# Calcular edad
+df['fecha_nacimiento'] = pd.to_datetime(df['fecha_nacimiento'])
+df['edad'] = (pd.to_datetime('today') - df['fecha_nacimiento']).dt.days // 365
+
+# Clasificar actividad
+conditions = [
+    (df['cursos_completados'] >= 20),
+    (df['cursos_completados'] >= 6) & (df['cursos_completados'] <= 19),
+    (df['cursos_completados'] <= 5)
+]
+choices = ['activo', 'latente', 'inactivo']
+df['actividad'] = np.select(conditions, choices, default='inactivo')
+
+# =============================================
+# VISUALIZACIONES ANTES DEL MODELADO
+# =============================================
+
+# 1. Distribución de actividades
+plt.figure(figsize=(10, 6))
+ax = sns.countplot(x='actividad', data=df, order=['activo', 'latente', 'inactivo'])
+plt.title('Distribución de Microempresarios por Nivel de Actividad')
+plt.xlabel('Nivel de Actividad')
+plt.ylabel('Cantidad de Microempresarios')
+
+# Agregar etiquetas con los valores
+for p in ax.patches:
+    ax.annotate(f'{int(p.get_height())}', 
+                (p.get_x() + p.get_width() / 2., p.get_height()),
+                ha='center', va='center', 
+                xytext=(0, 10), 
+                textcoords='offset points')
+
+plt.tight_layout()
+plt.show()
+
+# 2. Distribución por edad y actividad
+plt.figure(figsize=(12, 6))
+sns.boxplot(x='actividad', y='edad', data=df, order=['activo', 'latente', 'inactivo'])
+plt.title('Distribución de Edad por Nivel de Actividad')
+plt.xlabel('Nivel de Actividad')
+plt.ylabel('Edad')
+plt.tight_layout()
+plt.show()
+
+# 3. Ingresos semanales por actividad
+plt.figure(figsize=(12, 6))
+sns.boxplot(x='actividad', y='ingresos_semanales', data=df, order=['activo', 'latente', 'inactivo'])
+plt.title('Distribución de Ingresos Semanales por Nivel de Actividad')
+plt.xlabel('Nivel de Actividad')
+plt.ylabel('Ingresos Semanales')
+plt.tight_layout()
+plt.show()
+
+# 4. Participación en webinars
+plt.figure(figsize=(12, 6))
+sns.countplot(x='Webinars', hue='actividad', data=df, 
+              hue_order=['activo', 'latente', 'inactivo'],
+              palette="Set2")
+plt.title('Participación en Webinars por Nivel de Actividad')
+plt.xlabel('Número de Webinars Asistidos')
+plt.ylabel('Cantidad de Microempresarios')
+plt.legend(title='Nivel de Actividad')
+plt.tight_layout()
+plt.show()
+
+# 5. Tipo de empresa por actividad
+plt.figure(figsize=(14, 7))
+df_temp = df.groupby(['tipo_empresa', 'actividad']).size().unstack()
+df_temp.plot(kind='bar', stacked=True)
+plt.title('Distribución de Tipos de Empresa por Nivel de Actividad')
+plt.xlabel('Tipo de Empresa')
+plt.ylabel('Cantidad de Microempresarios')
+plt.legend(title='Nivel de Actividad')
+plt.xticks(rotation=45)
+plt.tight_layout()
+plt.show()
+
+# 6. Nivel educativo por actividad
+plt.figure(figsize=(12, 6))
+sns.countplot(x='nivel_educativo', hue='actividad', data=df,
+              hue_order=['activo', 'latente', 'inactivo'],
+              order=df['nivel_educativo'].value_counts().index)
+plt.title('Distribución por Nivel Educativo')
+plt.xlabel('Nivel Educativo')
+plt.ylabel('Cantidad')
+plt.legend(title='Nivel de Actividad')
+plt.xticks(rotation=45)
+plt.tight_layout()
+plt.show()
+
+# =============================================
+# MODELADO (continuación del código original)
+# =============================================
+
+# 3. Preparación de características
+features = df[[
+    'edad', 'genero', 'nivel_educativo', 'Webinars',
+    'tipo_empresa', 'nivel_madurez', 'n_empleados', 
+    'negocio_familiar', 'ingresos_semanales', 'antiguedad'
+]]
+
+target = df['actividad']
+
+# 4. Preprocesamiento
+categorical_cols = ['genero', 'nivel_educativo', 'tipo_empresa', 'nivel_madurez', 'negocio_familiar']
+numeric_cols = ['edad', 'Webinars', 'n_empleados', 'ingresos_semanales', 'antiguedad']
+
+numeric_transformer = Pipeline(steps=[
+    ('scaler', StandardScaler())
+])
+
+categorical_transformer = Pipeline(steps=[
+    ('onehot', OneHotEncoder(handle_unknown='ignore'))
+])
+
+preprocessor = ColumnTransformer(
+    transformers=[
+        ('num', numeric_transformer, numeric_cols),
+        ('cat', categorical_transformer, categorical_cols)
+    ])
+
+# 5. Creación y entrenamiento del modelo
+X_train, X_test, y_train, y_test = train_test_split(
+    features, target, test_size=0.2, random_state=42)
+
+model = Pipeline(steps=[
+    ('preprocessor', preprocessor),
+    ('classifier', RandomForestClassifier(n_estimators=100, random_state=42))
+])
+
+model.fit(X_train, y_train)
+
+# 6. Evaluación
+y_pred = model.predict(X_test)
+print(classification_report(y_test, y_pred))
+
+# 7. Guardar modelo
+joblib.dump(model, 'modelo_actividad_microempresarios.pkl')
+
+# 8. Función para predecir nuevos casos
+def predecir_actividad(nuevos_datos):
+    """
+    Función para predecir actividad de nuevos microempresarios
+    
+    Args:
+        nuevos_datos: DataFrame con las mismas columnas que features
+        
+    Returns:
+        Predicciones de actividad (activo, latente, inactivo)
+    """
+    return model.predict(nuevos_datos)
+
+# 9. Ejemplo de perfil ideal
+perfil_activo = pd.DataFrame({
+    'edad': [35],
+    'genero': ['Masculino'],
+    'nivel_educativo': ['Licenciatura'],
+    'Webinars': [5],
+    'tipo_empresa': ['Tecnología'],
+    'nivel_madurez': ['En crecimiento'],
+    'n_empleados': [5],
+    'negocio_familiar': [False],
+    'ingresos_semanales': [15000],
+    'antiguedad': [4]
+})
+
+perfil_latente = pd.DataFrame({
+    'edad': [45],
+    'genero': ['Femenino'],
+    'nivel_educativo': ['Preparatoria'],
+    'Webinars': [2],
+    'tipo_empresa': ['Comercio'],
+    'nivel_madurez': ['Iniciando'],
+    'n_empleados': [3],
+    'negocio_familiar': [True],
+    'ingresos_semanales': [8000],
+    'antiguedad': [2]
+})
+
+perfil_inactivo = pd.DataFrame({
+    'edad': [50],
+    'genero': ['Masculino'],
+    'nivel_educativo': ['Secundaria'],
+    'Webinars': [0],
+    'tipo_empresa': ['Manufactura'],
+    'nivel_madurez': ['Establecido'],
+    'n_empleados': [1],
+    'negocio_familiar': [True],
+    'ingresos_semanales': [5000],
+    'antiguedad': [10]
+})
+
+# Predecir para verificar que coinciden
+print("\nPredicción perfil activo:", predecir_actividad(perfil_activo)[0])
+print("Predicción perfil latente:", predecir_actividad(perfil_latente)[0])
+print("Predicción perfil inactivo:", predecir_actividad(perfil_inactivo)[0])
+
+# Visualización adicional: Importancia de características
+# Extraer el modelo entrenado
+rf_model = model.named_steps['classifier']
+
+# Obtener nombres de características después del preprocesamiento
+feature_names = (numeric_cols + 
+                 list(model.named_steps['preprocessor']
+                     .named_transformers_['cat']
+                     .named_steps['onehot']
+                     .get_feature_names_out(categorical_cols)))
+
+# Crear DataFrame de importancia
+importance_df = pd.DataFrame({
+    'feature': feature_names,
+    'importance': rf_model.feature_importances_
+}).sort_values('importance', ascending=False)
+
+# Gráfico de importancia de características
+plt.figure(figsize=(12, 8))
+sns.barplot(x='importance', y='feature', data=importance_df)
+plt.title('Importancia de Características en el Modelo')
+plt.xlabel('Importancia')
+plt.ylabel('Característica')
+plt.tight_layout()
+plt.show()
