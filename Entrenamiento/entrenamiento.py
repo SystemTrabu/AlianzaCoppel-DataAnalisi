@@ -23,15 +23,13 @@ df_empresarios = pd.read_sql("SELECT * FROM microempresario", engine)
 df_empresas = pd.read_sql("SELECT * FROM empresas", engine)
 df_cursos = pd.read_sql('SELECT * FROM "CursosTerminados"', engine)
 
-# 2. Procesamiento de datos
-# Calcular cantidad de cursos por microempresario
+
 cursos_count = df_cursos.groupby('microempresario_id').size().reset_index(name='cursos_completados')
 
-# Unir datos
 df = pd.merge(df_empresarios, cursos_count, left_on='id', right_on='microempresario_id', how='left')
 df = pd.merge(df, df_empresas, left_on='empresa_id', right_on='id', how='left')
 
-# Rellenar NaN con 0 (para quienes no han completado cursos)
+
 df['cursos_completados'] = df['cursos_completados'].fillna(0)
 
 # Calcular edad

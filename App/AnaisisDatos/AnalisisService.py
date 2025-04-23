@@ -405,3 +405,9 @@ class GeneracionDatos:
 
 
         return jsonify(data_return)
+    
+
+    def obtenerActividad():
+        micro_activos=MicroEmpresario.query.filter_by(actividad="activo")
+        
+        

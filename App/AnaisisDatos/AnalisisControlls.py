@@ -290,3 +290,8 @@ def ObtenerMejorEfectividad():
 def getEmpresarios():
 
     return GeneracionDatos.obtenerEmpresarios()
+
+
+@analisis_bp.route('/getActividad', methods=['GET'])
+def getActividad():
+    return GeneracionDatos.obtenerActividad()
