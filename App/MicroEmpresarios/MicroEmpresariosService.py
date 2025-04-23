@@ -18,28 +18,34 @@ class MicroEmpresariosService:
     def eliminar(id):
         return  MicroEmpresarioRepository.delete(id)
 
-    @staticmethod
     def crear(data):
-        # 1. Crear primero el negocio (empresa)
+        # 1. Crear primero la empresa (negocio)
         negocio = Empresa(
-            nombreempresa=data['nombreempresa'],
-            tipo=data['tipo'],
-            fecha=data['fecha']
+            nombre_empresa=data['nombre_empresa'],
+            tipo_empresa=data['tipo_empresa'],
+            n_empleados=data.get('n_empleados'),
+            ingresos_semanales=data.get('ingresos_semanales'),
+            nivel_madurez=data.get('nivel_madurez'),
+            negocio_familiar=data.get('negocio_familiar'),
+            antiguedad=data.get('antiguedad')
         )
         db.session.add(negocio)
-        db.session.flush()  # Genera el ID de la empresa sin hacer commit
+        db.session.flush()  # Para obtener el ID de empresa
 
         # 2. Crear MicroEmpresario con empresa_id generado
         empresario = MicroEmpresario(
-            nombre=data['nombre'],
-            CodigoPostal=data['CodigoPostal'],
-            N_telefono=data['N_telefono'],
+            nombre_empresario=data['nombre_empresario'],
+            genero=data.get('genero'),
+            correo=data.get('correo'),
+            fecha_nacimiento=data.get('fecha_nacimiento'),
+            fecha_registro=data.get('fecha_registro'),
+            n_telefono=data['n_telefono'],
+            codigo_postal=data['codigo_postal'],
             Webinars=data['Webinars'],
-            colaborador_id=data.get('colaborador_id'),  # Usa .get por si no lo mandan
-            empresa_id=negocio.id
+            nivel_educativo=data.get('nivel_educativo'),
+            colaborador_id=data.get('colaborador_id'),
+            empresa_id=negocio.id  # ID generado en flush
         )
-
         db.session.add(empresario)
         db.session.commit()
 
-        return empresario

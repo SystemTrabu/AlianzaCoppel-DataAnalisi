@@ -38,17 +38,23 @@ class ColaboradorService:
         resultado = []
         for m in microempresarios:
             cantidad_cursos = CursosTerminados.query.filter_by(microempresario_id=m.id).count()
-
             
             resultado.append({
                 'id': m.id,
-                'nombre': m.nombre,
-                'Num_tel': m.N_telefono,
-                'CP': m.CodigoPostal,
+                'nombre': m.nombre_empresario,
+                'correo': m.correo,
+                'genero': m.genero,
+                'Num_tel': m.n_telefono,
+                'CP': m.codigo_postal,
                 'Webinars': m.Webinars,
-                'Fecha_Registro': m.empresa.fecha if m.empresa else None,
+                'Fecha_Registro': m.fecha_registro,
+                'Fecha_Nacimiento': m.fecha_nacimiento,
+                'Nivel_Educativo': m.nivel_educativo,
+                'Colaborador_ID': m.colaborador_id,
+                'Empresa_ID': m.empresa_id,
                 'Cursos_terminados': cantidad_cursos
             })
+
 
         return resultado
     

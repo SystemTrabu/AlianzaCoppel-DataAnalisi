@@ -17,4 +17,3 @@ def getColaboradores():
 @colaborador_bp.route('/getEmpresarios/<int:id>')
 def getMicroempresarios(id):
     return ColaboradorService.getEmpresarios(id)
-
