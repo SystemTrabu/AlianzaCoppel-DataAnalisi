@@ -52,7 +52,7 @@ class ColaboradorService:
                 'Nivel_Educativo': m.nivel_educativo,
                 'Colaborador_ID': m.colaborador_id,
                 'Empresa_ID': m.empresa_id,
-                'Nombre_empresa': m.empresa_id.nombre_empresa,
+                'Nombre_empresa': m.empresa.nombre_empresa,
                 'Cursos_terminados': cantidad_cursos
             })
 
