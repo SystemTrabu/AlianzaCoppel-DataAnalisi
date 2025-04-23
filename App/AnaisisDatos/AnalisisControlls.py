@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from flask import Blueprint, jsonify, request
 import pandas as pd
-from .AnalisisService import SegmentacionService, ForecastService, InsightsService
+from .AnalisisService import SegmentacionService, ForecastService, InsightsService, GeneracionDatos
 from .Utils import JsonFormatter
 
 analisis_bp = Blueprint('analisis', __name__, url_prefix='/api/analisis')
@@ -264,12 +264,13 @@ def ObtenerMejorEfectividad():
                 })
 
             mejor_colaborador = max(colaboradores_data, key=lambda x: x['efectividad'])
-
+            print("Estoy terminando el metodo")
             return jsonify({
                 'success': True,
                 'data': {
                     'mejor_colaborador': mejor_colaborador,
-                    'microempresarios_semana_actual': total_semana
+                    'microempresarios_semana_actual': total_semana.to_dict(orient='records')
+
                 }
             }), 200
         else:
@@ -282,3 +283,10 @@ def ObtenerMejorEfectividad():
             'success': False,
             'error': str(e)
         }), 500
+    
+
+
+@analisis_bp.route('/getEmpresarios', methods=["GET"])
+def getEmpresarios():
+
+    return GeneracionDatos.obtenerEmpresarios()
