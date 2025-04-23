@@ -1,5 +1,6 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from flask import Blueprint, jsonify, request
+import pandas as pd
 from .AnalisisService import SegmentacionService, ForecastService, InsightsService
 from .Utils import JsonFormatter
 
@@ -186,11 +187,7 @@ def obtener_segmento_microempresario(id):
 def obtener_efectividad_colaboradores():
     try:
         from .Utils import DataProcessor
-        
-        # Obtener datos de microempresarios
         micro_data = DataProcessor.get_microempresarios_data()
-        
-        # Calcular efectividad por colaborador
         if 'colaborador_id' in micro_data.columns:
             colab_performance = micro_data.groupby('colaborador_id').agg({
                 'id': 'count',
@@ -222,7 +219,6 @@ def obtener_efectividad_colaboradores():
                 'success': False,
                 'error': "No se encontraron datos de colaboradores"
             }), 404
-        
     except Exception as e:
         return jsonify({
             'success': False,
@@ -230,3 +226,59 @@ def obtener_efectividad_colaboradores():
         }), 500
     
 
+@analisis_bp.route("/mejorefectividad")
+def ObtenerMejorEfectividad():
+    try:
+        from .Utils import DataProcessor
+        micro_data = DataProcessor.get_microempresarios_data()
+        
+        if 'colaborador_id' in micro_data.columns:
+            micro_data['fecha_registro'] = pd.to_datetime(micro_data['fecha_registro'])
+
+            hoy = datetime.now()
+            inicio_semana = hoy - timedelta(days=hoy.weekday())  
+            fin_semana = inicio_semana + timedelta(days=6)      
+
+            micro_semana = micro_data[
+                (micro_data['fecha_registro'] >= inicio_semana) &
+                (micro_data['fecha_registro'] <= fin_semana)
+            ]
+            total_semana = micro_semana
+
+            
+            colab_performance = micro_data.groupby('colaborador_id').agg({
+                'id': 'count',
+                'cursos_completados': ['mean', 'sum']
+            })
+
+            colab_performance.columns = ['cantidad_usuarios', 'promedio_cursos', 'total_cursos']
+            
+            colaboradores_data = []
+            for colaborador_id in colab_performance.index:
+                colaboradores_data.append({
+                    'colaborador_id': int(colaborador_id),
+                    'microempresarios_asignados': int(colab_performance.loc[colaborador_id, 'cantidad_usuarios']),
+                    'cursos_promedio': float(colab_performance.loc[colaborador_id, 'promedio_cursos']),
+                    'total_cursos': int(colab_performance.loc[colaborador_id, 'total_cursos']),
+                    'efectividad': float(colab_performance.loc[colaborador_id, 'promedio_cursos'])
+                })
+
+            mejor_colaborador = max(colaboradores_data, key=lambda x: x['efectividad'])
+
+            return jsonify({
+                'success': True,
+                'data': {
+                    'mejor_colaborador': mejor_colaborador,
+                    'microempresarios_semana_actual': total_semana
+                }
+            }), 200
+        else:
+            return jsonify({
+                'success': False,
+                'error': "No se encontraron datos de colaboradores"
+            }), 404
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500

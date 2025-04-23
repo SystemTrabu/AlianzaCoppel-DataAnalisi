@@ -38,7 +38,6 @@ class ColaboradorService:
         resultado = []
         for m in microempresarios:
             cantidad_cursos = CursosTerminados.query.filter_by(microempresario_id=m.id).count()
-
             
             resultado.append({
                 'id': m.id,
