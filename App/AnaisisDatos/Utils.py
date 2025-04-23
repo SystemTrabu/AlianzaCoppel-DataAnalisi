@@ -9,57 +9,57 @@ class DataProcessor:
     @staticmethod
     def get_microempresarios_data():
         """Obtiene todos los datos de microempresarios con sus cursos terminados"""
-        # Consulta para obtener microempresarios y el conteo de sus cursos terminados
+        
+        # Consulta con agregaciones
         result = db.session.query(
             MicroEmpresario,
             func.count(CursosTerminados.id).label('cursos_completados'),
             func.min(CursosTerminados.fecha).label('primera_actividad'),
             func.max(CursosTerminados.fecha).label('ultima_actividad')
         ).outerjoin(
-            CursosTerminados, MicroEmpresario.id == CursosTerminados.microempresario_id  # 👈 unión explícita
+            CursosTerminados, MicroEmpresario.id == CursosTerminados.microempresario_id
         ).group_by(
             MicroEmpresario.id
         ).all()
 
-        
-        # Convertir a DataFrame para facilitar el análisis
         data = []
+
         for micro, cursos_completados, primera_actividad, ultima_actividad in result:
-            # Calcular tiempo entre actividades
-            tiempo_entre_cursos = None
             tiempo_activacion = None
-            
-            if primera_actividad:
-                # Asumimos que MicroEmpresario tiene un campo fecha_registro
-                # Si no existe, puedes usar otra fecha de referencia o añadir este campo
-                # tiempo_activacion = (primera_actividad - micro.fecha_registro).days
-                tiempo_activacion = 0  # Temporalmente como 0 si no hay fecha_registro
-            
+            tiempo_entre_cursos = None
+
+            # Calcular tiempo desde primera hasta última actividad
+            if primera_actividad and ultima_actividad:
+                tiempo_activacion = (ultima_actividad - primera_actividad).days
+
+            # Calcular tiempo promedio entre cursos
             if cursos_completados > 1:
-                # Obtenemos todas las fechas de cursos ordenadas
-                fechas_cursos = db.session.query(CursosTerminados.fecha).filter(
-                    CursosTerminados.microempresario_id == micro.id
+                fechas = db.session.query(CursosTerminados.fecha).filter_by(
+                    microempresario_id=micro.id
                 ).order_by(CursosTerminados.fecha).all()
-                
-                # Calculamos diferencias entre fechas consecutivas
-                diferencias = [(fechas_cursos[i][0] - fechas_cursos[i-1][0]).days 
-                              for i in range(1, len(fechas_cursos))]
-                
+
+                fechas = [f[0] for f in fechas]
+                diferencias = [(fechas[i] - fechas[i-1]).days for i in range(1, len(fechas))]
                 tiempo_entre_cursos = sum(diferencias) / len(diferencias) if diferencias else None
-            
+
             data.append({
                 'id': micro.id,
-                'nombre': micro.nombre,
-                'codigo_postal': micro.CodigoPostal,
+                'nombre': micro.nombre_empresario,
+                'correo': micro.correo,
+                'genero': micro.genero,
+                'n_telefono': micro.n_telefono,
+                'codigo_postal': micro.codigo_postal,
                 'webinars': micro.Webinars,
                 'colaborador_id': micro.colaborador_id,
                 'empresa_id': micro.empresa_id,
+                'fecha_registro': micro.fecha_registro,  
                 'cursos_completados': cursos_completados,
                 'tiempo_activacion': tiempo_activacion,
                 'tiempo_entre_cursos': tiempo_entre_cursos,
                 'dias_desde_ultima_actividad': (datetime.utcnow() - ultima_actividad).days if ultima_actividad else None
             })
-        
+
+
         return pd.DataFrame(data)
     
     @staticmethod

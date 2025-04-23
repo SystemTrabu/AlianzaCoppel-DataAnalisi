@@ -1,4 +1,5 @@
 # AnalisisService.py
+from flask import jsonify
 import pandas as pd
 import numpy as np
 from sklearn.cluster import KMeans
@@ -6,6 +7,9 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.impute import SimpleImputer
 from prophet import Prophet
 from datetime import datetime, timedelta
+
+from ..models.MicroEmpresariosModel import MicroEmpresario
+from ..models.CursosTerminadosModel import CursosTerminados
 
 from .Utils import DataProcessor, JsonFormatter
 
@@ -335,3 +339,69 @@ class InsightsService:
         insights.sort(key=lambda x: priority_map[x['prioridad']])
         
         return insights
+    
+
+class GeneracionDatos:
+    def obtenerEmpresarios():
+        data_return=[]
+        microempresarios_total=MicroEmpresario.query.count()
+        
+
+        # Fecha actual
+        hoy = datetime.now()
+
+        # Primer día del mes actual
+        inicio_mes = datetime(hoy.year, hoy.month, 1)
+
+        if hoy.month == 12:
+            siguiente_mes = datetime(hoy.year + 1, 1, 1)
+        else:
+            siguiente_mes = datetime(hoy.year, hoy.month + 1, 1)
+
+        fin_mes = siguiente_mes - timedelta(seconds=1)
+
+        # Filtrar los microempresarios registrados en este mes
+        microempresarios_total_mes = MicroEmpresario.query.filter(
+            MicroEmpresario.fecha_registro >= inicio_mes,
+            MicroEmpresario.fecha_registro <= fin_mes
+        ).count()
+
+
+        
+
+        df_cursos = pd.DataFrame([c.__dict__ for c in CursosTerminados.query.all()])
+        df_empresarios = pd.DataFrame([m.__dict__ for m in MicroEmpresario.query.all()])
+
+        df_cursos.drop(columns=['_sa_instance_state'], inplace=True, errors='ignore')
+        df_empresarios.drop(columns=['_sa_instance_state'], inplace=True, errors='ignore')
+
+
+        cursos_count = df_cursos.groupby('microempresario_id').size().reset_index(name='cursos_completados')
+        
+        df = pd.merge(df_empresarios, cursos_count, left_on='id', right_on='microempresario_id', how='left')
+        df['cursos_completados'] = df['cursos_completados'].fillna(0)
+
+        conditions = [
+            (df['cursos_completados'] >= 20),
+            (df['cursos_completados'] >= 6) & (df['cursos_completados'] <= 19),
+            (df['cursos_completados'] <= 5)
+        ]
+        choices = ['activo', 'latente', 'inactivo']
+        df['actividad'] = np.select(conditions, choices, default='inactivo')
+
+        actividad_counts = df['actividad'].value_counts().to_dict()
+
+        actividad_total = {
+            'activo': actividad_counts.get('activo', 0),
+            'latente': actividad_counts.get('latente', 0),
+            'inactivo': actividad_counts.get('inactivo', 0)
+        }
+
+        data_return.append({
+            'total_micro':microempresarios_total,
+            'total_micro_mes': microempresarios_total_mes,
+            'distribucion_actividad': actividad_total
+        })
+
+
+        return jsonify(data_return)
