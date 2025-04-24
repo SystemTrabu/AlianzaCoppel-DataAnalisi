@@ -75,8 +75,67 @@ def create_app():
                 "nivel_educativo": {"type": "string"},
                 "colaborador_id": {"type": "integer"}
             }
+        },
+        "empresas": {
+            "type": "object",
+            "properties": {
+                "antiguedad": {"type": "integer"},
+                "id": {"type": "integer"},
+                "ingresos_semanales": {"type": "integer"},
+                "n_empleados": {"type": "integer"},
+                "negocio_familiar": {"type": "boolean"},
+                "nivel_madurez": {"type": "string"},
+                "nombre_empresa": {"type": "string"},
+                "tipo_empresa": {"type": "string"}
+            }
+            },
+        "colaboradoresGetEmpresarios": {
+            "type": "object",
+            "properties": {
+                "CP": { "type": "integer" },
+                "Colaborador_ID": { "type": "integer" },
+                "Cursos_terminados": { "type": "integer" },
+                "Empresa_ID": { "type": "integer" },
+                "Fecha_Nacimiento": { "type": "string", "format": "date-time" },
+                "Fecha_Registro": { "type": "string", "format": "date-time" },
+                "Nivel_Educativo": { "type": "string" },
+                "Nombre_empresa": { "type": "string" },
+                "Num_tel": { "type": "string" },
+                "Webinars": { "type": "integer" },
+                "correo": { "type": "string" },
+                "genero": { "type": "string" },
+                "id": { "type": "integer" },
+                "nombre": { "type": "string" }
+                }
+            },
+        "colaboradores": {
+            "type": "object",
+            "properties": {
+                "Num_Empleado": { "type": "integer" },
+                "id": { "type": "integer" },
+                "nombre": { "type": "string" }
+}
+            },
+        "colaboradoresGet": {
+            "type": "object",
+            "properties": {
+                "existe": { "type": "boolean" },
+                "id": { "type": "integer" },
+                "nombre": { "type": "string" }
+
+}
+            },
+         "colaboradoresGet": {
+            "type": "object",
+            "properties": {
+                "existe": { "type": "boolean" },
+                "id": { "type": "integer" },
+                "nombre": { "type": "string" }
+
+}
+            }
+        
         }
-    }
     }
 
     swagger = Swagger(app, config=swagger_config)

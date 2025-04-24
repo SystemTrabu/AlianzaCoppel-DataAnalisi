@@ -12,7 +12,16 @@ insights_service = InsightsService()
 
 @analisis_bp.route('/segmentacion', methods=['GET'])
 def obtener_segmentacion():
-    """Endpoint para obtener la segmentación de microempresarios"""
+    """Endpoint para obtener la segmentación de microempresarios
+    ---
+    responses:
+      200:
+        description: Endpoint para obtener la segmentación de microempresarios
+        schema:
+          type: array
+          items:
+            $ref: '#/definitions/segmentacion'
+            """
     try:
         # Obtener parámetro opcional de número de clusters
         n_clusters = request.args.get('n_clusters', default=3, type=int)
