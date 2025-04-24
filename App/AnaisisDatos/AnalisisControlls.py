@@ -56,6 +56,17 @@ def obtener_efectividad_colaboradores_cantidad(cantidad):
 
 @analisis_bp.route('/colaboradores/efectividad', methods=['GET'])
 def obtener_efectividad_colaboradores():
+    """
+    genera un raking de los colaboradores 
+    ---
+    responses:
+      200:
+        description: genera un raking de los colaboradores 
+        schema:
+          type: array
+          items:
+            $ref: '#/definitions/ranking'
+    """
     try:
         from .Utils import DataProcessor
         micro_data = DataProcessor.get_microempresarios_data()
@@ -99,6 +110,16 @@ def obtener_efectividad_colaboradores():
 
 @analisis_bp.route("/mejorefectividad")
 def ObtenerMejorEfectividad():
+    """
+    mejor colaborador top 1
+    ---
+    responses:
+    200:
+        description: Mejor colaborador top 1 y sus microempresarios con datos de esa semana
+        schema:
+        $ref: '#/definitions/MicroempresariosSemanaGET'
+    """
+
     try:
         from .Utils import DataProcessor
         import pandas as pd
@@ -160,15 +181,36 @@ def ObtenerMejorEfectividad():
 
 @analisis_bp.route('/getEmpresarios', methods=["GET"])
 def getEmpresarios():
-
+    """
+    Obtener todos los empresarios que son activos, inactivos y latentes
+    ---
+    responses:
+      200:
+        description: Obtener todos los empresarios que son activos, inactivos y latentes
+        schema:
+          type: array
+          items:
+            $ref: '#/definitions/DistribucionActividadGET'
+    """
     return GeneracionDatos.obtenerEmpresarios()
 
 
-@analisis_bp.route('/getActividad', methods=['GET'])
-def getActividad():
-    return GeneracionDatos.obtenerActividad()
+# @analisis_bp.route('/getActividad', methods=['GET'])
+# def getActividad():
+#     return GeneracionDatos.obtenerActividad()
 
 
 @analisis_bp.route('/generar/reporte', methods=['GET'])
 def GenerarReporte():
+    """
+    descarga un documento con diagrmas y datos
+    ---
+    responses:
+      200:
+        description: descarga un documento con diagrmas y datos
+        schema:
+          type: array
+          items:
+            $ref: '#/definitions/distribucion'
+    """
     return GeneracionDatos.descargar_reporte() 

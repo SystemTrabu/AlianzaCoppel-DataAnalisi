@@ -133,7 +133,90 @@ def create_app():
                 "nombre": { "type": "string" }
 
 }
+            },
+         "ranking": {
+            "type": "object",
+                "properties": {
+                    "data": {
+                    "type": "object",
+                    "properties": {
+                        "colaboradores": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                            "colaborador_id": { "type": "integer" },
+                            "cursos_promedio": { "type": "integer" },
+                            "efectividad": { "type": "integer" },
+                            "microempresarios_asignados": { "type": "integer" },
+                            "total_cursos": { "type": "integer" }
+                            }
+                        }
+                        }
+                    }
+                    }
+                }
+                },
+         "MicroempresariosSemanaGET": {
+  "type": "object",
+  "properties": {
+    "data": {
+      "type": "object",
+      "properties": {
+        "mejor_colaborador": {
+          "type": "object",
+          "properties": {
+            "colaborador_id": { "type": "integer" },
+            "cursos_promedio": { "type": "integer" },
+            "efectividad": { "type": "integer" },
+            "microempresarios_asignados": { "type": "integer" },
+            "total_cursos": { "type": "integer" }
+          }
+        },
+        "microempresarios_semana_actual": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "codigo_postal": { "type": "integer" },
+              "colaborador_id": { "type": "integer" },
+              "correo": { "type": "string" },
+              "cursos_completados": { "type": "integer" },
+              "dias_desde_ultima_actividad": { "type": "integer" },
+              "empresa_id": { "type": "integer" },
+              "fecha_registro": { "type": "string", "format": "date-time" },
+              "genero": { "type": "string" },
+              "id": { "type": "integer" },
+              "n_telefono": { "type": "string" },
+              "nombre": { "type": "string" },
+              "tiempo_activacion": { "type": "integer" },
+              "tiempo_entre_cursos": { "type": "integer" },
+              "webinars": { "type": "integer" }
             }
+          }
+        }
+      }
+    }
+  }
+},"DistribucionActividadGET": {
+  "type": "object",
+  "properties": {
+    "distribucion_actividad": {
+      "type": "object",
+      "properties": {
+        "activo": { "type": "integer" },
+        "inactivo": { "type": "integer" },
+        "latente": { "type": "integer" }
+      }
+    },
+    "total_micro": { "type": "integer" },
+    "total_micro_mes": { "type": "integer" }
+  }
+}
+
+         
+
+
         
         }
     }
