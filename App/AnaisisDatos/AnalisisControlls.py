@@ -295,3 +295,8 @@ def getEmpresarios():
 @analisis_bp.route('/getActividad', methods=['GET'])
 def getActividad():
     return GeneracionDatos.obtenerActividad()
+
+
+@analisis_bp.route('/generar/reporte', methods=['GET'])
+def GenerarReporte():
+    return GeneracionDatos.descargar_reporte() 

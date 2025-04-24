@@ -1,5 +1,8 @@
 # AnalisisService.py
-from flask import jsonify
+import io
+import os
+from flask import jsonify, make_response
+from matplotlib import pyplot as plt
 import pandas as pd
 import numpy as np
 from sklearn.cluster import KMeans
@@ -10,7 +13,17 @@ from datetime import datetime, timedelta
 
 from ..models.MicroEmpresariosModel import MicroEmpresario
 from ..models.CursosTerminadosModel import CursosTerminados
+from ..models.EmpresaModel import Empresa
 
+import matplotlib.pyplot as plt
+import seaborn as sns
+import tempfile
+import os
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import letter
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Image, Spacer, PageBreak
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib.units import inch
 from .Utils import DataProcessor, JsonFormatter
 
 class SegmentacionService:
@@ -409,5 +422,264 @@ class GeneracionDatos:
 
     def obtenerActividad():
         micro_activos=MicroEmpresario.query.filter_by(actividad="activo")
+    
+
+    def descargar_reporte():
+        buffer = io.BytesIO()
         
+        doc = SimpleDocTemplate(buffer, pagesize=letter)
         
+        elementos = []
+        
+        estilos = getSampleStyleSheet()
+        
+        titulo = Paragraph("Reporte AlianzaCoppel", estilos["Title"])
+        elementos.append(titulo)
+        
+        texto = Paragraph("Reporte detallado de microempresarios según su nivel de actividad", estilos["Normal"])
+        elementos.append(texto)
+        
+        elementos.append(Spacer(1, 20))
+
+        df_cursos = pd.DataFrame([c.__dict__ for c in CursosTerminados.query.all()])
+        df_empresarios = pd.DataFrame([m.__dict__ for m in MicroEmpresario.query.all()])
+        df_empresas=pd.DataFrame([x.__dict__ for x in Empresa.query.all()])
+
+        df_cursos.drop(columns=['_sa_instance_state'], inplace=True, errors='ignore')
+        df_empresarios.drop(columns=['_sa_instance_state'], inplace=True, errors='ignore')
+        df_empresas.drop(columns=['_sa_instance_state'], inplace=True, errors='ignore')
+
+        cursos_count = df_cursos.groupby('microempresario_id').size().reset_index(name='cursos_completados')
+        
+        df = pd.merge(df_empresarios, cursos_count, left_on='id', right_on='microempresario_id', how='left')
+        df = pd.merge(df, df_empresas, left_on='empresa_id', right_on='id', how='left')
+
+        df['cursos_completados'] = df['cursos_completados'].fillna(0)
+
+        df['fecha_nacimiento'] = pd.to_datetime(df['fecha_nacimiento'])
+        df['edad'] = (pd.to_datetime('today') - df['fecha_nacimiento']).dt.days // 365
+        conditions = [
+            (df['cursos_completados'] >= 20),
+            (df['cursos_completados'] >= 6) & (df['cursos_completados'] <= 19),
+            (df['cursos_completados'] <= 5)
+        ]
+        choices = ['activo', 'latente', 'inactivo']
+        df['actividad'] = np.select(conditions, choices, default='inactivo')
+
+        temp_files = []
+
+        subtitulo = Paragraph("1. Distribución de Microempresarios por Nivel de Actividad", estilos["Heading2"])
+        elementos.append(subtitulo)
+        elementos.append(Spacer(1, 10))
+        
+        plt.figure(figsize=(10, 6))
+        ax = sns.countplot(x='actividad', data=df, order=['activo', 'latente', 'inactivo'])
+        plt.title('Distribución de Microempresarios por Nivel de Actividad')
+        plt.xlabel('Nivel de Actividad')
+        plt.ylabel('Cantidad de Microempresarios')
+        
+        # Agregar valores encima de cada barra
+        for p in ax.patches:
+            ax.annotate(f'{int(p.get_height())}', 
+                    (p.get_x() + p.get_width() / 2., p.get_height()), 
+                    ha='center', va='bottom')
+        
+        # Guardar la gráfica en un archivo temporal
+        with tempfile.NamedTemporaryFile(suffix='.png', delete=False) as tmp:
+            temp_filename = tmp.name
+            temp_files.append(temp_filename)
+        
+        plt.savefig(temp_filename, format='png', dpi=300, bbox_inches='tight')
+        plt.close()
+        
+        # Agregar la imagen al PDF
+        imagen = Image(temp_filename, width=6*inch, height=3.5*inch)
+        elementos.append(imagen)
+        
+        # Agregar un resumen de texto después de la gráfica
+        elementos.append(Spacer(1, 15))
+        
+        # Contar microempresarios por categoría
+        activos = df[df['actividad'] == 'activo'].shape[0]
+        latentes = df[df['actividad'] == 'latente'].shape[0]
+        inactivos = df[df['actividad'] == 'inactivo'].shape[0]
+        total = df.shape[0]
+        
+        resumen = Paragraph(f"""
+        <b>Resumen de Actividad:</b><br/>
+        Total de microempresarios: {total}<br/>
+        - Microempresarios activos (≥20 cursos): {activos} ({activos/total*100:.1f}%)<br/>
+        - Microempresarios latentes (6-19 cursos): {latentes} ({latentes/total*100:.1f}%)<br/>
+        - Microempresarios inactivos (≤5 cursos): {inactivos} ({inactivos/total*100:.1f}%)
+        """, estilos["Normal"])
+        
+        elementos.append(resumen)
+        #elementos.append(PageBreak())
+        
+        # 2. Distribución de Edad por Nivel de Actividad
+        subtitulo = Paragraph("2. Distribución de Edad por Nivel de Actividad", estilos["Heading2"])
+        elementos.append(subtitulo)
+        elementos.append(Spacer(1, 10))
+        
+        plt.figure(figsize=(12, 6))
+        sns.boxplot(x='actividad', y='edad', data=df, order=['activo', 'latente', 'inactivo'])
+        plt.title('Distribución de Edad por Nivel de Actividad')
+        plt.xlabel('Nivel de Actividad')
+        plt.ylabel('Edad')
+        plt.tight_layout()
+        
+        with tempfile.NamedTemporaryFile(suffix='.png', delete=False) as tmp:
+            temp_filename = tmp.name
+            temp_files.append(temp_filename)
+        
+        plt.savefig(temp_filename, format='png', dpi=300, bbox_inches='tight')
+        plt.close()
+        
+        imagen = Image(temp_filename, width=6.5*inch, height=3.5*inch)
+        elementos.append(imagen)
+        elementos.append(Spacer(1, 15))
+        
+        # 3. Ingresos semanales por actividad
+        subtitulo = Paragraph("3. Distribución de Ingresos Semanales por Nivel de Actividad", estilos["Heading2"])
+        elementos.append(subtitulo)
+        elementos.append(Spacer(1, 10))
+        
+        plt.figure(figsize=(12, 6))
+        sns.boxplot(x='actividad', y='ingresos_semanales', data=df, order=['activo', 'latente', 'inactivo'])
+        plt.title('Distribución de Ingresos Semanales por Nivel de Actividad')
+        plt.xlabel('Nivel de Actividad')
+        plt.ylabel('Ingresos Semanales')
+        plt.tight_layout()
+        
+        with tempfile.NamedTemporaryFile(suffix='.png', delete=False) as tmp:
+            temp_filename = tmp.name
+            temp_files.append(temp_filename)
+        
+        plt.savefig(temp_filename, format='png', dpi=300, bbox_inches='tight')
+        plt.close()
+        
+        imagen = Image(temp_filename, width=6.5*inch, height=3.5*inch)
+        elementos.append(imagen)
+        #elementos.append(PageBreak())
+        
+        # 4. Participación en webinars
+        subtitulo = Paragraph("4. Participación en Webinars por Nivel de Actividad", estilos["Heading2"])
+        elementos.append(subtitulo)
+        elementos.append(Spacer(1, 10))
+        
+        plt.figure(figsize=(12, 6))
+        sns.countplot(x='Webinars', hue='actividad', data=df, 
+                    hue_order=['activo', 'latente', 'inactivo'],
+                    palette="Set2")
+        plt.title('Participación en Webinars por Nivel de Actividad')
+        plt.xlabel('Número de Webinars Asistidos')
+        plt.ylabel('Cantidad de Microempresarios')
+        plt.legend(title='Nivel de Actividad')
+        plt.tight_layout()
+        
+        with tempfile.NamedTemporaryFile(suffix='.png', delete=False) as tmp:
+            temp_filename = tmp.name
+            temp_files.append(temp_filename)
+        
+        plt.savefig(temp_filename, format='png', dpi=300, bbox_inches='tight')
+        plt.close()
+        
+        imagen = Image(temp_filename, width=6.5*inch, height=3.5*inch)
+        elementos.append(imagen)
+        elementos.append(Spacer(1, 15))
+        
+        # 5. Tipo de empresa por actividad
+        subtitulo = Paragraph("5. Distribución de Tipos de Empresa por Nivel de Actividad", estilos["Heading2"])
+        elementos.append(subtitulo)
+        elementos.append(Spacer(1, 10))
+        
+        plt.figure(figsize=(14, 7))
+        df_temp = df.groupby(['tipo_empresa', 'actividad']).size().unstack()
+        df_temp.plot(kind='bar', stacked=True)
+        plt.title('Distribución de Tipos de Empresa por Nivel de Actividad')
+        plt.xlabel('Tipo de Empresa')
+        plt.ylabel('Cantidad de Microempresarios')
+        plt.legend(title='Nivel de Actividad')
+        plt.xticks(rotation=45)
+        plt.tight_layout()
+        
+        with tempfile.NamedTemporaryFile(suffix='.png', delete=False) as tmp:
+            temp_filename = tmp.name
+            temp_files.append(temp_filename)
+        
+        plt.savefig(temp_filename, format='png', dpi=300, bbox_inches='tight')
+        plt.close()
+        
+        imagen = Image(temp_filename, width=6.5*inch, height=3.5*inch)
+        elementos.append(imagen)
+        elementos.append(PageBreak())
+        
+        # 6. Nivel educativo por actividad
+        subtitulo = Paragraph("6. Distribución por Nivel Educativo", estilos["Heading2"])
+        elementos.append(subtitulo)
+        elementos.append(Spacer(1, 10))
+        
+        plt.figure(figsize=(12, 6))
+        sns.countplot(x='nivel_educativo', hue='actividad', data=df,
+                    hue_order=['activo', 'latente', 'inactivo'],
+                    order=df['nivel_educativo'].value_counts().index)
+        plt.title('Distribución por Nivel Educativo')
+        plt.xlabel('Nivel Educativo')
+        plt.ylabel('Cantidad')
+        plt.legend(title='Nivel de Actividad')
+        plt.xticks(rotation=45)
+        plt.tight_layout()
+        
+        with tempfile.NamedTemporaryFile(suffix='.png', delete=False) as tmp:
+            temp_filename = tmp.name
+            temp_files.append(temp_filename)
+        
+        plt.savefig(temp_filename, format='png', dpi=300, bbox_inches='tight')
+        plt.close()
+        
+        imagen = Image(temp_filename, width=6.5*inch, height=3.5*inch)
+        elementos.append(imagen)
+        elementos.append(Spacer(1, 15))
+        
+        # 7. Comparación de géneros
+        subtitulo = Paragraph("7. Distribución por Género y Nivel de Actividad", estilos["Heading2"])
+        elementos.append(subtitulo)
+        elementos.append(Spacer(1, 10))
+        
+        plt.figure(figsize=(12, 6))
+        sns.countplot(x='genero', hue='actividad', data=df,
+                    hue_order=['activo', 'latente', 'inactivo'],
+                    order=['hombre', 'mujer', 'otro'])
+        plt.title('Distribución por Género y Nivel de Actividad')
+        plt.xlabel('Género')
+        plt.ylabel('Cantidad de Microempresarios')
+        plt.legend(title='Nivel de Actividad')
+        plt.tight_layout()
+        
+        with tempfile.NamedTemporaryFile(suffix='.png', delete=False) as tmp:
+            temp_filename = tmp.name
+            temp_files.append(temp_filename)
+        
+        plt.savefig(temp_filename, format='png', dpi=300, bbox_inches='tight')
+        plt.close()
+        
+        imagen = Image(temp_filename, width=6.5*inch, height=3.5*inch)
+        elementos.append(imagen)
+        
+        doc.build(elementos)
+        
+        # Eliminar los archivos temporales
+        for temp_file in temp_files:
+            os.unlink(temp_file)
+        
+        # Preparar el buffer para lectura
+        buffer.seek(0)
+        
+        # Crear una respuesta con el PDF
+        response = make_response(buffer.getvalue())
+        
+        # Establecer las cabeceras para la descarga
+        response.headers['Content-Type'] = 'application/pdf'
+        response.headers['Content-Disposition'] = 'attachment; filename=reporte_alianzacoppel.pdf'
+        
+        return response
