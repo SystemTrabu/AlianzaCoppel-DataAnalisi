@@ -370,14 +370,14 @@ print(f"\nSe han guardado todos los perfiles (ideales y múltiples) en 'perfiles
 
 # Creamos un caso de prueba para demostrar la funcionalidad
 nuevo_empresario = {
-    'edad': 35,
+    'edad': 42,
     'nivel_educativo': 'superior', 
-    'tipo_empresa': 'alimento',
-    'nivel_madurez': 'media', 
+    'tipo_empresa': 'tienda',
+    'nivel_madurez': 'alta', 
     'n_empleados': 4,
     'negocio_familiar': True,
-    'ingresos_semanales': 5000,
-    'antiguedad': 1
+    'ingresos_semanales': 10000,
+    'antiguedad': 12
 }
 
 # Convertir a DataFrame
