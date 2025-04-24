@@ -9,6 +9,7 @@ ma = Marshmallow()
 
 from .ColaboradoresModel import Usuario
 from .MicroEmpresariosModel import MicroEmpresario
+
 from .CategoriaModel import Categoria
 from .CursosModel import Curso               # Primero importa Curso
 from .CursosTerminadosModel import CursosTerminados  # Luego CursosTerminados
