@@ -118,35 +118,6 @@ class DataProcessor:
         
         return pd.DataFrame(data)
 
-class JsonFormatter:
-    @staticmethod
-    def dataframe_to_json(df, orient='records'):
-        """Convierte un DataFrame a formato JSON"""
-        return df.to_dict(orient=orient)
+
     
-    @staticmethod
-    def format_segment_results(results):
-        """Formatea los resultados de segmentación para API"""
-        segment_summary = results['segment_summary'].reset_index().to_dict(orient='records')
-        
-        return {
-            'segment_summary': segment_summary,
-            'segment_mapping': results['segment_mapping'],
-            'segment_counts': results['df_segmentado']['segmento'].value_counts().to_dict()
-        }
-    
-    @staticmethod
-    def format_forecast_results(forecast_results, metrics):
-        """Formatea los resultados de forecast para API"""
-        future_data = forecast_results['future_forecast'][['ds', 'yhat', 'yhat_lower', 'yhat_upper']]
-        future_data_formatted = future_data.rename(columns={
-            'ds': 'fecha',
-            'yhat': 'prediccion',
-            'yhat_lower': 'limite_inferior',
-            'yhat_upper': 'limite_superior'
-        }).to_dict(orient='records')
-        
-        return {
-            'forecast': future_data_formatted,
-            'metrics': metrics
-        }
+ 
