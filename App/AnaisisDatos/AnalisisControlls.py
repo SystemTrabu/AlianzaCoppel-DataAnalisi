@@ -1,6 +1,8 @@
 from datetime import datetime, timedelta
 from flask import Blueprint, jsonify, request
 import pandas as pd
+
+from App.models import ColaboradoresModel
 from .AnalisisService import SegmentacionService, ForecastService, InsightsService, GeneracionDatos
 from .Utils import JsonFormatter
 
@@ -134,8 +136,6 @@ def ObtenerMejorEfectividad():
             hoy = datetime.now()
             inicio_semana = hoy - timedelta(days=hoy.weekday())  
             fin_semana = inicio_semana + timedelta(days=6)      
-            print(inicio_semana)
-            print(fin_semana)
             micro_semana = micro_data[
                 (micro_data['fecha_registro'] >= inicio_semana) &
                 (micro_data['fecha_registro'] <= fin_semana)
@@ -150,8 +150,10 @@ def ObtenerMejorEfectividad():
             
             colaboradores_data = []
             for colaborador_id in colab_performance.index:
+                colaborador = ColaboradoresModel.Usuario.query.filter_by(id=colaborador_id).first()
                 colaboradores_data.append({
                     'colaborador_id': int(colaborador_id),
+                    'nombre_colaborador': colaborador.nombre,
                     'microempresarios_semanal': int(micro_semanal_por_colaborador.get(colaborador_id, 0)),
                     'cursos_promedio': float(colab_performance.loc[colaborador_id, 'promedio_cursos']),
                     'total_cursos': int(colab_performance.loc[colaborador_id, 'total_cursos']),
