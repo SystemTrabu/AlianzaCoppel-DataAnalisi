@@ -7,6 +7,51 @@ from .Utils import JsonFormatter
 analisis_bp = Blueprint('analisis', __name__, url_prefix='/api/analisis')
 
 
+@analisis_bp.route('/colaboradores/efectividad/<int:cantidad>', methods=['GET'])
+def obtener_efectividad_colaboradores_cantidad(cantidad):
+    try:
+        from .Utils import DataProcessor
+        micro_data = DataProcessor.get_microempresarios_data()
+        if 'colaborador_id' in micro_data.columns:
+            colab_performance = micro_data.groupby('colaborador_id').agg({
+                'id': 'count',
+                'cursos_completados': ['mean', 'sum']
+            })
+            
+            colab_performance.columns = ['cantidad_usuarios', 'promedio_cursos', 'total_cursos']
+            
+            colaboradores_data = []
+            contador=0
+            for colaborador_id in colab_performance.index:
+                colaboradores_data.append({
+                    'colaborador_id': int(colaborador_id),
+                    'microempresarios_asignados': int(colab_performance.loc[colaborador_id, 'cantidad_usuarios']),
+                    'cursos_promedio': float(colab_performance.loc[colaborador_id, 'promedio_cursos']),
+                    'total_cursos': int(colab_performance.loc[colaborador_id, 'total_cursos']),
+                    'efectividad': float(colab_performance.loc[colaborador_id, 'promedio_cursos'])
+                })
+                contador+=1
+                if contador== cantidad:
+                    break
+            
+            colaboradores_data = sorted(colaboradores_data, key=lambda x: x['efectividad'], reverse=True)
+            
+            return jsonify({
+                'success': True,
+                'data': {
+                    'colaboradores': colaboradores_data
+                }
+            }), 200
+        else:
+            return jsonify({
+                'success': False,
+                'error': "No se encontraron datos de colaboradores"
+            }), 404
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
 
 
 @analisis_bp.route('/colaboradores/efectividad', methods=['GET'])

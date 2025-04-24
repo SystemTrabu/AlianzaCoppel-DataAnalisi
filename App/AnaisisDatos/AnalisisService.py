@@ -1,5 +1,6 @@
 # AnalisisService.py
 import io
+import json
 import os
 from flask import jsonify, make_response
 from matplotlib import pyplot as plt
@@ -440,6 +441,51 @@ class GeneracionDatos:
         elementos.append(texto)
         
         elementos.append(Spacer(1, 20))
+
+        perfiles_data=[]
+        ruta_actual = os.path.dirname(__file__)
+        ruta_json = os.path.abspath(os.path.join(ruta_actual, "../../perfiles_microempresarios.json"))
+
+        with open(ruta_json, "r", encoding="utf-8") as f:
+            perfiles_data = json.load(f)
+
+        elementos.append(Paragraph("Perfiles del mes por categoría", estilos["Title"]))
+        elementos.append(Spacer(1, 20))
+
+        def perfil_a_texto(perfil):
+            texto = ""
+            for clave, valor in perfil.items():
+                if isinstance(valor, bool):
+                    valor = "Sí" if valor else "No"
+                texto += f"<b>{clave.replace('_', ' ').capitalize()}:</b> {valor}<br/>"
+            return texto
+
+        def agregar_perfil_narrativo(titulo, perfil):
+            elementos.append(Paragraph(f"<b>{titulo}</b>", estilos["Heading3"]))
+            elementos.append(Paragraph(perfil_a_texto(perfil), estilos["Normal"]))
+            elementos.append(Spacer(1, 12))
+
+        # Orden de categorías
+        orden = ["activo", "latente", "inactivo"]
+
+        # Perfiles ideales
+        elementos.append(Paragraph("Perfiles ideales", estilos["Heading2"]))
+        elementos.append(Spacer(1, 10))
+        for grupo in orden:
+            agregar_perfil_narrativo(f"Ideal - {grupo.capitalize()}", perfiles_data["perfiles_ideales"][grupo])
+
+        # Perfiles múltiples
+        elementos.append(Paragraph("Perfiles múltiples", estilos["Heading2"]))
+        elementos.append(Spacer(1, 10))
+        for grupo in orden:
+            for i, perfil in enumerate(perfiles_data["perfiles_multiples"][grupo], start=1):
+                agregar_perfil_narrativo(f"{grupo.capitalize()} #{i}", perfil)
+        
+        
+        
+
+
+        
 
         df_cursos = pd.DataFrame([c.__dict__ for c in CursosTerminados.query.all()])
         df_empresarios = pd.DataFrame([m.__dict__ for m in MicroEmpresario.query.all()])
