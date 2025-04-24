@@ -20,207 +20,194 @@ def create_app():
     # Importa los modelos para que Flask-Migrate los detecte
     
     swagger_config = {
-    "headers": [],
-    "specs": [
-        {
-            "endpoint": 'apispec_1',
-            "route": '/apispec_1.json',
-            "rule_filter": lambda rule: True,  # incluye todas las rutas
-            "model_filter": lambda tag: True,  # incluye todos los modelos
-        }
-    ],
-    "static_url_path": "/flasgger_static",
-    "swagger_ui": True,
-    "specs_route": "/apidocs/",
-    "definitions": {
-        "MicroEmpresarioGET": {
-            "type": "object",
-            "properties": {
-                "id": {"type": "integer"},
-                "nombre_empresario": {"type": "string"},
-                "correo": {"type": "string"},
-                "genero": {"type": "string"},
-                "n_telefono": {"type": "string"},
-                "codigo_postal": {"type": "integer"},
-                "Webinars": {"type": "integer"},
-                "fecha_registro": {"type": "string", "format": "date-time"},
-                "fecha_nacimiento": {"type": "string", "format": "date-time"},
-                "nivel_educativo": {"type": "string"},
-                "actividad": {"type": ["string", "null"]},
-                "estado": {"type": "string"},
-                "colaborador_id": {"type": "integer"},
-                "empresa_id": {"type": "integer"}
+        "headers": [],
+        "specs": [
+            {
+                "endpoint": 'apispec_1',
+                "route": '/apispec_1.json',
+                "rule_filter": lambda rule: True,  # incluye todas las rutas
+                "model_filter": lambda tag: True,  # incluye todos los modelos
             }
-        },
-        "RegistroCompletoPOST": {
-            "type": "object",
-            "properties": {
-                "nombre_empresa": {"type": "string"},
-                "tipo_empresa": {"type": "string"},
-                "n_empleados": {"type": "integer"},
-                "ingresos_semanales": {"type": "integer"},
-                "nivel_madurez": {"type": "string"},
-                "negocio_familiar": {"type": "boolean"},
-                "antiguedad": {"type": "integer"},
-                "estado": {"type": "string"},
-
-                "nombre_empresario": {"type": "string"},
-                "genero": {"type": "string"},
-                "correo": {"type": "string"},
-                "fecha_nacimiento": {"type": "string", "format": "date-time"},
-                "fecha_registro": {"type": "string", "format": "date-time"},
-                "n_telefono": {"type": "string"},
-                "codigo_postal": {"type": "integer"},
-                "Webinars": {"type": "integer"},
-                "nivel_educativo": {"type": "string"},
-                "colaborador_id": {"type": "integer"}
-            }
-        },
-        "empresas": {
-            "type": "object",
-            "properties": {
-                "antiguedad": {"type": "integer"},
-                "id": {"type": "integer"},
-                "ingresos_semanales": {"type": "integer"},
-                "n_empleados": {"type": "integer"},
-                "negocio_familiar": {"type": "boolean"},
-                "nivel_madurez": {"type": "string"},
-                "nombre_empresa": {"type": "string"},
-                "tipo_empresa": {"type": "string"}
-            }
-            },
-        "colaboradoresGetEmpresarios": {
-            "type": "object",
-            "properties": {
-                "CP": { "type": "integer" },
-                "Colaborador_ID": { "type": "integer" },
-                "Cursos_terminados": { "type": "integer" },
-                "Empresa_ID": { "type": "integer" },
-                "Fecha_Nacimiento": { "type": "string", "format": "date-time" },
-                "Fecha_Registro": { "type": "string", "format": "date-time" },
-                "Nivel_Educativo": { "type": "string" },
-                "Nombre_empresa": { "type": "string" },
-                "Num_tel": { "type": "string" },
-                "Webinars": { "type": "integer" },
-                "correo": { "type": "string" },
-                "genero": { "type": "string" },
-                "id": { "type": "integer" },
-                "nombre": { "type": "string" }
+        ],
+        "static_url_path": "/flasgger_static",
+        "swagger_ui": True,
+        "specs_route": "/apidocs/",
+    }
+    
+    swagger_definitions = {
+        "definitions": {
+            "MicroEmpresarioGET": {
+                "type": "object",
+                "properties": {
+                    "id": {"type": "integer"},
+                    "nombre_empresario": {"type": "string"},
+                    "correo": {"type": "string"},
+                    "genero": {"type": "string"},
+                    "n_telefono": {"type": "string"},
+                    "codigo_postal": {"type": "integer"},
+                    "Webinars": {"type": "integer"},
+                    "fecha_registro": {"type": "string", "format": "date-time"},
+                    "fecha_nacimiento": {"type": "string", "format": "date-time"},
+                    "nivel_educativo": {"type": "string"},
+                    "actividad": {"type": ["string", "null"]},
+                    "estado": {"type": "string"},
+                    "colaborador_id": {"type": "integer"},
+                    "empresa_id": {"type": "integer"}
                 }
             },
-        "colaboradores": {
-            "type": "object",
-            "properties": {
-                "Num_Empleado": { "type": "integer" },
-                "id": { "type": "integer" },
-                "nombre": { "type": "string" }
-}
-            },
-        "colaboradoresGet": {
-            "type": "object",
-            "properties": {
-                "existe": { "type": "boolean" },
-                "id": { "type": "integer" },
-                "nombre": { "type": "string" }
-
-}
-            },
-         "colaboradoresGet": {
-            "type": "object",
-            "properties": {
-                "existe": { "type": "boolean" },
-                "id": { "type": "integer" },
-                "nombre": { "type": "string" }
-
-}
-            },
-         "ranking": {
-            "type": "object",
+            "RegistroCompletoPOST": {
+                "type": "object",
                 "properties": {
-                    "data": {
+                    "nombre_empresa": {"type": "string"},
+                    "tipo_empresa": {"type": "string"},
+                    "n_empleados": {"type": "integer"},
+                    "ingresos_semanales": {"type": "integer"},
+                    "nivel_madurez": {"type": "string"},
+                    "negocio_familiar": {"type": "boolean"},
+                    "antiguedad": {"type": "integer"},
+                    "estado": {"type": "string"},
+                    "nombre_empresario": {"type": "string"},
+                    "genero": {"type": "string"},
+                    "correo": {"type": "string"},
+                    "fecha_nacimiento": {"type": "string", "format": "date-time"},
+                    "fecha_registro": {"type": "string", "format": "date-time"},
+                    "n_telefono": {"type": "string"},
+                    "codigo_postal": {"type": "integer"},
+                    "Webinars": {"type": "integer"},
+                    "nivel_educativo": {"type": "string"},
+                    "colaborador_id": {"type": "integer"}
+                }
+            },
+            "empresas": {
+                "type": "object",
+                "properties": {
+                    "antiguedad": {"type": "integer"},
+                    "id": {"type": "integer"},
+                    "ingresos_semanales": {"type": "integer"},
+                    "n_empleados": {"type": "integer"},
+                    "negocio_familiar": {"type": "boolean"},
+                    "nivel_madurez": {"type": "string"},
+                    "nombre_empresa": {"type": "string"},
+                    "tipo_empresa": {"type": "string"}
+                }
+            },
+            "colaboradoresGetEmpresarios": {
+                "type": "object",
+                "properties": {
+                    "CP": { "type": "integer" },
+                    "Colaborador_ID": { "type": "integer" },
+                    "Cursos_terminados": { "type": "integer" },
+                    "Empresa_ID": { "type": "integer" },
+                    "Fecha_Nacimiento": { "type": "string", "format": "date-time" },
+                    "Fecha_Registro": { "type": "string", "format": "date-time" },
+                    "Nivel_Educativo": { "type": "string" },
+                    "Nombre_empresa": { "type": "string" },
+                    "Num_tel": { "type": "string" },
+                    "Webinars": { "type": "integer" },
+                    "correo": { "type": "string" },
+                    "genero": { "type": "string" },
+                    "id": { "type": "integer" },
+                    "nombre": { "type": "string" }
+                }
+            },
+            "colaboradores": {
+                "type": "object",
+                "properties": {
+                    "Num_Empleado": { "type": "integer" },
+                    "id": { "type": "integer" },
+                    "nombre": { "type": "string" }
+                }
+            },
+            "colaboradoresGet": {
+                "type": "object",
+                "properties": {
+                    "existe": { "type": "boolean" },
+                    "id": { "type": "integer" },
+                    "nombre": { "type": "string" }
+                }
+            },
+            "ranking": {
+            "type": "object",
+            "properties": {
+                "data": {
                     "type": "object",
                     "properties": {
                         "colaboradores": {
-                        "type": "array",
-                        "items": {
-                            "type": "object",
-                            "properties": {
-                            "colaborador_id": { "type": "integer" },
-                            "cursos_promedio": { "type": "integer" },
-                            "efectividad": { "type": "integer" },
-                            "microempresarios_asignados": { "type": "integer" },
-                            "total_cursos": { "type": "integer" }
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "colaborador_id": { "type": "integer" },
+                                    "cursos_promedio": { "type": "number" },
+                                    "efectividad": { "type": "number" },
+                                    "microempresarios_asignados": { "type": "integer" },
+                                    "total_cursos": { "type": "integer" }
+                                }
                             }
                         }
-                        }
-                    }
                     }
                 }
-                },
-         "MicroempresariosSemanaGET": {
-  "type": "object",
-  "properties": {
-    "data": {
-      "type": "object",
-      "properties": {
-        "mejor_colaborador": {
-          "type": "object",
-          "properties": {
-            "colaborador_id": { "type": "integer" },
-            "cursos_promedio": { "type": "integer" },
-            "efectividad": { "type": "integer" },
-            "microempresarios_asignados": { "type": "integer" },
-            "total_cursos": { "type": "integer" }
-          }
+            }
         },
-        "microempresarios_semana_actual": {
-          "type": "array",
-          "items": {
+        "MicroempresariosSemanaGET": {
             "type": "object",
             "properties": {
-              "codigo_postal": { "type": "integer" },
-              "colaborador_id": { "type": "integer" },
-              "correo": { "type": "string" },
-              "cursos_completados": { "type": "integer" },
-              "dias_desde_ultima_actividad": { "type": "integer" },
-              "empresa_id": { "type": "integer" },
-              "fecha_registro": { "type": "string", "format": "date-time" },
-              "genero": { "type": "string" },
-              "id": { "type": "integer" },
-              "n_telefono": { "type": "string" },
-              "nombre": { "type": "string" },
-              "tiempo_activacion": { "type": "integer" },
-              "tiempo_entre_cursos": { "type": "integer" },
-              "webinars": { "type": "integer" }
+                "data": {
+                    "type": "object",
+                    "properties": {
+                        "mejor_colaborador": {
+                            "type": "object",
+                            "properties": {
+                                "colaborador_id": { "type": "integer" },
+                                "cursos_promedio": { "type": "number" },
+                                "efectividad": { "type": "number" },
+                                "microempresarios_asignados": { "type": "integer" },
+                                "total_cursos": { "type": "integer" }
+                            }
+                        },
+                        "microempresarios_semana_actual": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "codigo_postal": { "type": "integer" },
+                                    "colaborador_id": { "type": "integer" },
+                                    "correo": { "type": "string" },
+                                    "cursos_completados": { "type": "integer" },
+                                    "dias_desde_ultima_actividad": { "type": "integer" },
+                                    "empresa_id": { "type": "integer" },
+                                    "fecha_registro": { "type": "string", "format": "date-time" },
+                                    "genero": { "type": "string" },
+                                    "id": { "type": "integer" },
+                                    "n_telefono": { "type": "string" },
+                                    "nombre": { "type": "string" },
+                                    "tiempo_activacion": { "type": "integer" },
+                                    "tiempo_entre_cursos": { "type": "integer" },
+                                    "webinars": { "type": "integer" }
+                                }
+                            }
+                        }
+                    }
+                }
             }
-          }
+        },
+        "DistribucionActividadGET": {
+            "type": "object",
+            "properties": {
+                "activos": { "type": "integer" },
+                "inactivos": { "type": "integer" },
+                "latentes": { "type": "integer" },
+                "total": { "type": "integer" }
+            }
         }
-      }
-    }
-  }
-},"DistribucionActividadGET": {
-  "type": "object",
-  "properties": {
-    "distribucion_actividad": {
-      "type": "object",
-      "properties": {
-        "activo": { "type": "integer" },
-        "inactivo": { "type": "integer" },
-        "latente": { "type": "integer" }
-      }
-    },
-    "total_micro": { "type": "integer" },
-    "total_micro_mes": { "type": "integer" }
-  }
-}
-
-         
-
-
-        
+            # Si necesitas agregar los modelos comentados, descomentar y formatear correctamente
+            # "ranking": {...},
+            # "MicroempresariosSemanaGET": {...}
         }
     }
-
+        # Combinar configuración y definiciones
+    swagger_config.update(swagger_definitions)
+    
     swagger = Swagger(app, config=swagger_config)
 
     from . import models

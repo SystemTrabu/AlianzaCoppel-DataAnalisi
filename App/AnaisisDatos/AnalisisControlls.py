@@ -57,15 +57,36 @@ def obtener_efectividad_colaboradores_cantidad(cantidad):
 @analisis_bp.route('/colaboradores/efectividad', methods=['GET'])
 def obtener_efectividad_colaboradores():
     """
-    genera un raking de los colaboradores 
+    Genera un ranking de los colaboradores
     ---
+    tags:
+      - Analisis
     responses:
       200:
-        description: genera un raking de los colaboradores 
+        description: Ranking de colaboradores por efectividad
         schema:
-          type: array
-          items:
-            $ref: '#/definitions/ranking'
+          type: object
+          properties:
+            success:
+              type: boolean
+            data:
+              type: object
+              properties:
+                colaboradores:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      colaborador_id:
+                        type: integer
+                      microempresarios_asignados:
+                        type: integer
+                      cursos_promedio:
+                        type: number
+                      total_cursos:
+                        type: integer
+                      efectividad:
+                        type: number
     """
     try:
         from .Utils import DataProcessor
@@ -111,15 +132,59 @@ def obtener_efectividad_colaboradores():
 @analisis_bp.route("/mejorefectividad")
 def ObtenerMejorEfectividad():
     """
-    mejor colaborador top 1
+    Mejor colaborador top 1
     ---
+    tags:
+      - Analisis
     responses:
-    200:
+      200:
         description: Mejor colaborador top 1 y sus microempresarios con datos de esa semana
         schema:
-        $ref: '#/definitions/MicroempresariosSemanaGET'
+          type: object
+          properties:
+            success:
+              type: boolean
+            data:
+              type: object
+              properties:
+                mejor_colaborador:
+                  type: object
+                  properties:
+                    colaborador_id:
+                      type: integer
+                    microempresarios_asignados:
+                      type: integer
+                    cursos_promedio:
+                      type: number
+                    total_cursos:
+                      type: integer
+                    efectividad:
+                      type: number
+                microempresarios_semana_actual:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                      nombre:
+                        type: string
+                      correo:
+                        type: string
+                      genero:
+                        type: string
+                      n_telefono:
+                        type: string
+                      codigo_postal:
+                        type: integer
+                      colaborador_id:
+                        type: integer
+                      empresa_id:
+                        type: integer
+                      fecha_registro:
+                        type: string
+                        format: date-time
     """
-
     try:
         from .Utils import DataProcessor
         micro_data = DataProcessor.get_microempresarios_data()
@@ -183,13 +248,22 @@ def getEmpresarios():
     """
     Obtener todos los empresarios que son activos, inactivos y latentes
     ---
+    tags:
+      - Analisis
     responses:
       200:
-        description: Obtener todos los empresarios que son activos, inactivos y latentes
+        description: Distribución de actividad de empresarios
         schema:
-          type: array
-          items:
-            $ref: '#/definitions/DistribucionActividadGET'
+          type: object
+          properties:
+            activos:
+              type: integer
+            inactivos:
+              type: integer
+            latentes:
+              type: integer
+            total:
+              type: integer
     """
     return GeneracionDatos.obtenerEmpresarios()
 
@@ -202,14 +276,17 @@ def getEmpresarios():
 @analisis_bp.route('/generar/reporte', methods=['GET'])
 def GenerarReporte():
     """
-    descarga un documento con diagrmas y datos
+    Genera un reporte con diagramas y datos
     ---
     responses:
       200:
-        description: descarga un documento con diagrmas y datos
-        schema:
-          type: array
-          items:
-            $ref: '#/definitions/distribucion'
+        description: Genera y descarga un archivo PDF con diagramas y datos
+        content:
+          application/pdf:
+            schema:
+              type: string
+              format: binary
+      500:
+        description: Error al generar el reporte
     """
     return GeneracionDatos.descargar_reporte() 
