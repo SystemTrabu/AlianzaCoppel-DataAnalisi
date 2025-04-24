@@ -5,14 +5,14 @@ from flask_migrate import Migrate
 from .config import Config
 from flasgger import Swagger
 from .models import db, ma  
-
+from flask_cors import CORS
 migrate = Migrate()
 
 def create_app():
     app = Flask(__name__)
 
     app.config.from_object(Config)
-
+    CORS(app, origins=["http://localhost:5173"])
     db.init_app(app)
     ma.init_app(app)  
     migrate.init_app(app, db)
