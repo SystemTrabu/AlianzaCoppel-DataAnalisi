@@ -44,6 +44,7 @@ class MicroEmpresariosService:
             Webinars=data['Webinars'],
             nivel_educativo=data.get('nivel_educativo'),
             colaborador_id=data.get('colaborador_id'),
+            estado=data.get('estado'),
             empresa_id=negocio.id  # ID generado en flush
         )
         db.session.add(empresario)

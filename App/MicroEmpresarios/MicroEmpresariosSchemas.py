@@ -1,4 +1,4 @@
-from App.models import ma
+from App.models import ma , MicroEmpresario
 
 from App.models.MicroEmpresariosModel import MicroEmpresario
 

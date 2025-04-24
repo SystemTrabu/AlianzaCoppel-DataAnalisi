@@ -1,0 +1,228 @@
+{
+    "perfiles_ideales": {
+        "activo": {
+            "edad": 34.0,
+            "n_empleados": 6.0,
+            "ingresos_semanales": 18700.0,
+            "antiguedad": 6.0,
+            "nivel_educativo": "profesional",
+            "tipo_empresa": "servicios",
+            "nivel_madurez": "alto",
+            "negocio_familiar": true,
+            "id": "ideal_activo",
+            "grupo": "activo"
+        },
+        "latente": {
+            "edad": 36.0,
+            "n_empleados": 7.0,
+            "ingresos_semanales": 19350.0,
+            "antiguedad": 6.5,
+            "nivel_educativo": "medio superior",
+            "tipo_empresa": "servicios",
+            "nivel_madurez": "medio",
+            "negocio_familiar": false,
+            "id": "ideal_latente",
+            "grupo": "latente"
+        },
+        "inactivo": {
+            "edad": 33.5,
+            "n_empleados": 4.0,
+            "ingresos_semanales": 16200.0,
+            "antiguedad": 5.0,
+            "nivel_educativo": "profesional",
+            "tipo_empresa": "servicios",
+            "nivel_madurez": "medio",
+            "negocio_familiar": false,
+            "id": "ideal_inactivo",
+            "grupo": "inactivo"
+        }
+    },
+    "perfiles_multiples": {
+        "activo": [
+            {
+                "edad": 39,
+                "n_empleados": 9,
+                "ingresos_semanales": 11218.06,
+                "antiguedad": 5.68,
+                "nivel_educativo": "profesional tecnico",
+                "tipo_empresa": "servicios",
+                "nivel_madurez": "bajo",
+                "negocio_familiar": true,
+                "id": "activo_1",
+                "grupo": "activo"
+            },
+            {
+                "edad": 31,
+                "n_empleados": 9,
+                "ingresos_semanales": 20091.17,
+                "antiguedad": 4.9,
+                "nivel_educativo": "profesional",
+                "tipo_empresa": "alimentos",
+                "nivel_madurez": "bajo",
+                "negocio_familiar": true,
+                "id": "activo_2",
+                "grupo": "activo"
+            },
+            {
+                "edad": 32,
+                "n_empleados": 10,
+                "ingresos_semanales": 15854.03,
+                "antiguedad": 6.23,
+                "nivel_educativo": "medio superior",
+                "tipo_empresa": "servicios",
+                "nivel_madurez": "bajo",
+                "negocio_familiar": true,
+                "id": "activo_3",
+                "grupo": "activo"
+            },
+            {
+                "edad": 35,
+                "n_empleados": 8,
+                "ingresos_semanales": 17027.8,
+                "antiguedad": 7.06,
+                "nivel_educativo": "profesional tecnico",
+                "tipo_empresa": "servicios",
+                "nivel_madurez": "medio",
+                "negocio_familiar": true,
+                "id": "activo_4",
+                "grupo": "activo"
+            },
+            {
+                "edad": 37,
+                "n_empleados": 5,
+                "ingresos_semanales": 15969.06,
+                "antiguedad": 5.77,
+                "nivel_educativo": "medio superior",
+                "tipo_empresa": "servicios",
+                "nivel_madurez": "alto",
+                "negocio_familiar": false,
+                "id": "activo_5",
+                "grupo": "activo"
+            }
+        ],
+        "latente": [
+            {
+                "edad": 37,
+                "n_empleados": 7,
+                "ingresos_semanales": 22551.4,
+                "antiguedad": 8.21,
+                "nivel_educativo": "profesional tecnico",
+                "tipo_empresa": "otro",
+                "nivel_madurez": "medio",
+                "negocio_familiar": false,
+                "id": "latente_1",
+                "grupo": "latente"
+            },
+            {
+                "edad": 39,
+                "n_empleados": 9,
+                "ingresos_semanales": 20662.9,
+                "antiguedad": 8.26,
+                "nivel_educativo": "medio superior",
+                "tipo_empresa": "servicios",
+                "nivel_madurez": "medio",
+                "negocio_familiar": false,
+                "id": "latente_2",
+                "grupo": "latente"
+            },
+            {
+                "edad": 38,
+                "n_empleados": 7,
+                "ingresos_semanales": 19253.98,
+                "antiguedad": 6.82,
+                "nivel_educativo": "medio superior",
+                "tipo_empresa": "otro",
+                "nivel_madurez": "medio",
+                "negocio_familiar": false,
+                "id": "latente_3",
+                "grupo": "latente"
+            },
+            {
+                "edad": 33,
+                "n_empleados": 8,
+                "ingresos_semanales": 17847.29,
+                "antiguedad": 5.19,
+                "nivel_educativo": "profesional",
+                "tipo_empresa": "servicios",
+                "nivel_madurez": "alto",
+                "negocio_familiar": false,
+                "id": "latente_4",
+                "grupo": "latente"
+            },
+            {
+                "edad": 33,
+                "n_empleados": 8,
+                "ingresos_semanales": 24811.03,
+                "antiguedad": 8.93,
+                "nivel_educativo": "medio superior",
+                "tipo_empresa": "profesiones",
+                "nivel_madurez": "medio",
+                "negocio_familiar": true,
+                "id": "latente_5",
+                "grupo": "latente"
+            }
+        ],
+        "inactivo": [
+            {
+                "edad": 40,
+                "n_empleados": 3,
+                "ingresos_semanales": 20490.72,
+                "antiguedad": 3.76,
+                "nivel_educativo": "profesional",
+                "tipo_empresa": "profesiones",
+                "nivel_madurez": "medio",
+                "negocio_familiar": true,
+                "id": "inactivo_1",
+                "grupo": "inactivo"
+            },
+            {
+                "edad": 32,
+                "n_empleados": 7,
+                "ingresos_semanales": 21637.84,
+                "antiguedad": 3.34,
+                "nivel_educativo": "profesional",
+                "tipo_empresa": "servicios",
+                "nivel_madurez": "bajo",
+                "negocio_familiar": false,
+                "id": "inactivo_2",
+                "grupo": "inactivo"
+            },
+            {
+                "edad": 37,
+                "n_empleados": 5,
+                "ingresos_semanales": 21515.14,
+                "antiguedad": 4.04,
+                "nivel_educativo": "profesional",
+                "tipo_empresa": "servicios",
+                "nivel_madurez": "medio",
+                "negocio_familiar": true,
+                "id": "inactivo_3",
+                "grupo": "inactivo"
+            },
+            {
+                "edad": 36,
+                "n_empleados": 4,
+                "ingresos_semanales": 19625.45,
+                "antiguedad": 4.54,
+                "nivel_educativo": "profesional tecnico",
+                "tipo_empresa": "profesiones",
+                "nivel_madurez": "alto",
+                "negocio_familiar": false,
+                "id": "inactivo_4",
+                "grupo": "inactivo"
+            },
+            {
+                "edad": 36,
+                "n_empleados": 6,
+                "ingresos_semanales": 20298.52,
+                "antiguedad": 5.96,
+                "nivel_educativo": "profesional",
+                "tipo_empresa": "profesiones",
+                "nivel_madurez": "alto",
+                "negocio_familiar": true,
+                "id": "inactivo_5",
+                "grupo": "inactivo"
+            }
+        ]
+    }
+}
