@@ -187,6 +187,10 @@ def ObtenerMejorEfectividad():
     """
     try:
         from .Utils import DataProcessor
+        import pandas as pd
+        from datetime import datetime, timedelta
+        from flask import jsonify
+
         micro_data = DataProcessor.get_microempresarios_data()
         
         if 'colaborador_id' in micro_data.columns:
@@ -195,39 +199,36 @@ def ObtenerMejorEfectividad():
             hoy = datetime.now()
             inicio_semana = hoy - timedelta(days=hoy.weekday())  
             fin_semana = inicio_semana + timedelta(days=6)      
-
+            print(inicio_semana)
+            print(fin_semana)
             micro_semana = micro_data[
                 (micro_data['fecha_registro'] >= inicio_semana) &
                 (micro_data['fecha_registro'] <= fin_semana)
             ]
-            total_semana = micro_semana
+            micro_semanal_por_colaborador = micro_semana.groupby('colaborador_id')['id'].count()
 
-            
             colab_performance = micro_data.groupby('colaborador_id').agg({
                 'id': 'count',
                 'cursos_completados': ['mean', 'sum']
             })
-
             colab_performance.columns = ['cantidad_usuarios', 'promedio_cursos', 'total_cursos']
             
             colaboradores_data = []
             for colaborador_id in colab_performance.index:
                 colaboradores_data.append({
                     'colaborador_id': int(colaborador_id),
-                    'microempresarios_asignados': int(colab_performance.loc[colaborador_id, 'cantidad_usuarios']),
+                    'microempresarios_semanal': int(micro_semanal_por_colaborador.get(colaborador_id, 0)),
                     'cursos_promedio': float(colab_performance.loc[colaborador_id, 'promedio_cursos']),
                     'total_cursos': int(colab_performance.loc[colaborador_id, 'total_cursos']),
                     'efectividad': float(colab_performance.loc[colaborador_id, 'promedio_cursos'])
                 })
 
             mejor_colaborador = max(colaboradores_data, key=lambda x: x['efectividad'])
-            print("Estoy terminando el metodo")
+
             return jsonify({
                 'success': True,
                 'data': {
-                    'mejor_colaborador': mejor_colaborador,
-                    'microempresarios_semana_actual': total_semana.to_dict(orient='records')
-
+                    'mejor_colaborador': mejor_colaborador
                 }
             }), 200
         else:
@@ -240,7 +241,7 @@ def ObtenerMejorEfectividad():
             'success': False,
             'error': str(e)
         }), 500
-    
+
 
 
 @analisis_bp.route('/getEmpresarios', methods=["GET"])
