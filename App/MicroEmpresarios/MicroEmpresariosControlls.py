@@ -64,8 +64,11 @@ def create():
           $ref: '#/definitions/RegistroCompletoPOST'
     """
     data = request.get_json()
-    colaborador = MicroEmpresariosService.crear(data)
-    return MicroEmpresario_schema.jsonify(colaborador), 201
+    colaborador, empresa = MicroEmpresariosService.crear(data)
+    resultado=MicroEmpresariosService.predecir_actividad(colaborador, empresa)
+    return jsonify({
+        'resultado': resultado
+    }), 200
 
 
 @MicroEmpresario_bp.route('/<int:id>', methods=['DELETE'])

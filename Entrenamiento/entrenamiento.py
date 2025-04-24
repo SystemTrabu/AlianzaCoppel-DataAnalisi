@@ -89,7 +89,6 @@ plt.show()
 # MODELADO PREDICTIVO
 # =============================================
 
-# 1. Definir las características relevantes
 features = df[[
     'edad', 'nivel_educativo', 
     'tipo_empresa', 'nivel_madurez', 'n_empleados', 
@@ -98,7 +97,6 @@ features = df[[
 
 target = df['actividad']
 
-# 2. Definir transformadores para preprocesamiento
 categorical_cols = ['nivel_educativo', 'tipo_empresa', 'nivel_madurez', 'negocio_familiar']
 numeric_cols = ['edad', 'n_empleados', 'ingresos_semanales', 'antiguedad']
 
@@ -116,26 +114,21 @@ preprocessor = ColumnTransformer(
         ('cat', categorical_transformer, categorical_cols)
     ])
 
-# 3. Configurar el pipeline completo de modelado
 model_pipeline = Pipeline(steps=[
     ('preprocessor', preprocessor),
     ('classifier', RandomForestClassifier(n_estimators=100, random_state=42))
 ])
 
-# 4. Dividir los datos en conjuntos de entrenamiento y prueba
 X_train, X_test, y_train, y_test = train_test_split(
     features, target, test_size=0.2, random_state=42, stratify=target)
 
-# 5. Entrenar el modelo
 print("Entrenando el modelo...")
 model_pipeline.fit(X_train, y_train)
 
-# 6. Evaluar el rendimiento del modelo
 print("\n--- Evaluación del Modelo ---")
 y_pred = model_pipeline.predict(X_test)
 print(classification_report(y_test, y_pred))
 
-# Matriz de confusión
 cm = confusion_matrix(y_test, y_pred)
 plt.figure(figsize=(10, 8))
 sns.heatmap(cm, annot=True, fmt='d', cmap='Blues',
@@ -146,7 +139,6 @@ plt.ylabel('Valor Real')
 plt.title('Matriz de Confusión')
 plt.show()
 
-# 7. Guardar el modelo entrenado
 joblib.dump(model_pipeline, 'modelo_actividad_microempresarios.pkl')
 print("\nModelo guardado como 'modelo_actividad_microempresarios.pkl'")
 
@@ -165,26 +157,20 @@ def predecir_actividad_probabilidades(datos_empresario):
     Returns:
         Diccionario con las probabilidades para cada clase
     """
-    # Asegurar que estamos usando un DataFrame
     if not isinstance(datos_empresario, pd.DataFrame):
         datos_empresario = pd.DataFrame([datos_empresario])
     
-    # Verificar que tenemos todas las columnas necesarias
     for col in features.columns:
         if col not in datos_empresario.columns:
             raise ValueError(f"Falta la columna {col} en los datos del empresario")
     
-    # Obtener las columnas en el mismo orden que el modelo espera
     datos_input = datos_empresario[features.columns]
     
-    # Obtener probabilidades
     probabilidades = model_pipeline.predict_proba(datos_input)
     
-    # Crear diccionario con las probabilidades
     clases = model_pipeline.classes_
     resultado = {clase: prob[0] for clase, prob in zip(clases, probabilidades.T)}
     
-    # También incluir la predicción final
     prediccion = model_pipeline.predict(datos_input)[0]
     resultado['prediccion'] = prediccion
     
@@ -207,7 +193,6 @@ def obtener_estadisticas_grupo(df, grupo):
     """
     grupo_df = df[df['actividad'] == grupo]
     
-    # Estadísticas para variables numéricas
     stats_num = {}
     for col in numeric_cols:
         stats_num[col] = {
@@ -218,7 +203,6 @@ def obtener_estadisticas_grupo(df, grupo):
             'max': grupo_df[col].max()
         }
     
-    # Valores más frecuentes para variables categóricas
     stats_cat = {}
     for col in categorical_cols:
         value_counts = grupo_df[col].value_counts(normalize=True)
@@ -226,7 +210,6 @@ def obtener_estadisticas_grupo(df, grupo):
     
     return {'numericas': stats_num, 'categoricas': stats_cat}
 
-# Obtener estadísticas para cada grupo
 stats_activo = obtener_estadisticas_grupo(df, 'activo')
 stats_latente = obtener_estadisticas_grupo(df, 'latente')
 stats_inactivo = obtener_estadisticas_grupo(df, 'inactivo')
@@ -247,17 +230,13 @@ def crear_perfil_ideal(stats):
     """
     perfil = {}
     
-    # Para variables numéricas usar la mediana (valor central)
     for col, valores in stats['numericas'].items():
         perfil[col] = valores['median']
     
-    # Para variables categóricas usar el valor más frecuente
     for col, valores in stats['categoricas'].items():
-        # Encontrar el valor más frecuente
-        if valores:  # Verificar que hay valores
+        if valores: 
             perfil[col] = max(valores.items(), key=lambda x: x[1])[0]
         else:
-            # Si no hay valores, usar un valor predeterminado
             perfil[col] = None
     
     return pd.DataFrame([perfil])
@@ -283,33 +262,25 @@ def generar_multiples_perfiles(stats, n_perfiles=5, nombre_grupo='grupo'):
     for i in range(n_perfiles):
         perfil = {}
         
-        # Generar variables numéricas en el rango interquartil (entre Q1 y Q3)
         for col, valores in stats['numericas'].items():
-            # Usar rango interquartil para generar valores aleatorios más representativos
             perfil[col] = np.random.uniform(valores['q1'], valores['q3'])
             
-            # Redondear valores según el tipo
             if col in ['edad', 'n_empleados']:
                 perfil[col] = int(round(perfil[col]))
             else:
                 perfil[col] = round(perfil[col], 2)
         
-        # Generar variables categóricas basadas en probabilidades
         for col, valores in stats['categoricas'].items():
-            # Convertir a lista para poder usar random.choices
             opciones = list(valores.keys())
             pesos = list(valores.values())
             
-            # Normalizar pesos para asegurarnos de que sumen 1
             suma_pesos = sum(pesos)
-            if suma_pesos > 0:  # Evitar división por cero
+            if suma_pesos > 0:  
                 pesos_normalizados = [p/suma_pesos for p in pesos]
                 perfil[col] = np.random.choice(opciones, p=pesos_normalizados)
             else:
-                # Si no hay pesos, elegir al azar
                 perfil[col] = np.random.choice(opciones)
         
-        # Añadir ID de perfil y grupo
         perfil['id'] = f"{nombre_grupo}_{i+1}"
         perfil['grupo'] = nombre_grupo
         
@@ -317,12 +288,10 @@ def generar_multiples_perfiles(stats, n_perfiles=5, nombre_grupo='grupo'):
     
     return pd.DataFrame(perfiles)
 
-# Crear perfiles ideales consolidados (1 por grupo)
 perfil_ideal_activo = crear_perfil_ideal(stats_activo)
 perfil_ideal_latente = crear_perfil_ideal(stats_latente)
 perfil_ideal_inactivo = crear_perfil_ideal(stats_inactivo)
 
-# Añadir identificadores a los perfiles ideales
 perfil_ideal_activo['id'] = 'ideal_activo'
 perfil_ideal_activo['grupo'] = 'activo'
 perfil_ideal_latente['id'] = 'ideal_latente'
@@ -338,13 +307,11 @@ print(perfil_ideal_latente.to_dict('records')[0])
 print("\nPerfil INACTIVO ideal:")
 print(perfil_ideal_inactivo.to_dict('records')[0])
 
-# Generar múltiples perfiles por grupo (5 por grupo)
 n_perfiles = 5  # Número de perfiles adicionales a generar por grupo
 perfiles_activos = generar_multiples_perfiles(stats_activo, n_perfiles, 'activo')
 perfiles_latentes = generar_multiples_perfiles(stats_latente, n_perfiles, 'latente')
 perfiles_inactivos = generar_multiples_perfiles(stats_inactivo, n_perfiles, 'inactivo')
 
-# Combinar todos los perfiles en una sola estructura
 todos_perfiles = {
     'perfiles_ideales': {
         'activo': perfil_ideal_activo.to_dict('records')[0],
@@ -358,17 +325,11 @@ todos_perfiles = {
     }
 }
 
-# Guardar todos los perfiles en un solo archivo JSON
 with open('perfiles_microempresarios.json', 'w', encoding='utf-8') as f:
     json.dump(todos_perfiles, f, ensure_ascii=False, indent=4)
 
 print(f"\nSe han guardado todos los perfiles (ideales y múltiples) en 'perfiles_microempresarios.json'")
 
-# =============================================
-# PRUEBA DE PREDICCIÓN CON UN NUEVO EMPRESARIO
-# =============================================
-
-# Creamos un caso de prueba para demostrar la funcionalidad
 nuevo_empresario = {
     'edad': 42,
     'nivel_educativo': 'superior', 
@@ -380,10 +341,8 @@ nuevo_empresario = {
     'antiguedad': 12
 }
 
-# Convertir a DataFrame
 df_nuevo = pd.DataFrame([nuevo_empresario])
 
-# Realizar la predicción
 resultado = predecir_actividad_probabilidades(df_nuevo)
 
 print("\n=== PREDICCIÓN PARA NUEVO EMPRESARIO ===")
@@ -420,7 +379,6 @@ def reentrenar_modelo(df_nuevos_datos, ruta_modelo='modelo_actividad_microempres
             ('classifier', RandomForestClassifier(n_estimators=100, random_state=42))
         ])
     
-    # Verificar que tenemos las columnas necesarias en los nuevos datos
     columnas_necesarias = ['edad', 'nivel_educativo', 'tipo_empresa', 'nivel_madurez', 
                           'n_empleados', 'negocio_familiar', 'ingresos_semanales', 
                           'antiguedad', 'actividad']
@@ -429,21 +387,14 @@ def reentrenar_modelo(df_nuevos_datos, ruta_modelo='modelo_actividad_microempres
         if col not in df_nuevos_datos.columns:
             raise ValueError(f"Falta la columna {col} en los nuevos datos")
     
-    # Preparar características y target
     X_nuevos = df_nuevos_datos[columnas_necesarias[:-1]]
     y_nuevos = df_nuevos_datos['actividad']
     
     # Reentrenar el modelo con los nuevos datos
     modelo_existente.fit(X_nuevos, y_nuevos)
     
-    # Guardar el modelo reentrenado
     joblib.dump(modelo_existente, ruta_modelo)
     print(f"Modelo reentrenado guardado en {ruta_modelo}")
     
     return modelo_existente
 
-print("\nEl código está listo para ser ejecutado. Incluye:")
-print("- Entrenamiento del modelo")
-print("- Generación de perfiles ideales y múltiples perfiles")
-print("- Función para predecir nuevos empresarios")
-print("- Función para reentrenar el modelo a futuro")

@@ -1,3 +1,10 @@
+from datetime import date
+import os
+import pickle
+
+import pandas as pd
+from sklearn.linear_model import LinearRegression
+from sklearn.pipeline import Pipeline
 from .MicroEmpresariosRepository import MicroEmpresarioRepository
 from App.models import db
 from App.models.MicroEmpresariosModel import MicroEmpresario
@@ -50,3 +57,66 @@ class MicroEmpresariosService:
         db.session.add(empresario)
         db.session.commit()
 
+        return empresario, negocio
+    
+    def predecir_actividad(empresario, empresa):
+        import os
+        import pickle
+        import pandas as pd
+        import joblib
+        from datetime import date
+        from sklearn.ensemble import RandomForestClassifier
+        
+        try:
+            ruta_actual = os.path.dirname(__file__)
+            ruta = os.path.abspath(os.path.join(ruta_actual, "../../modelo_actividad_microempresarios.pkl"))
+            
+            if not os.path.exists(ruta):
+                return {"error": "El modelo no existe en la ruta especificada"}
+            
+            try:
+                modelo = joblib.load(ruta)
+            except:
+                with open(ruta, "rb") as f:
+                    modelo = pickle.load(f)
+            
+            def calcular_edad(fecha_nacimiento):
+                hoy = date.today()
+                return hoy.year - fecha_nacimiento.year - ((hoy.month, hoy.day) < (fecha_nacimiento.month, fecha_nacimiento.day))
+            
+            nuevo_empresario = {
+                'edad': calcular_edad(empresario.fecha_nacimiento),
+                'nivel_educativo': empresario.nivel_educativo,
+                'tipo_empresa': empresa.tipo_empresa,
+                'nivel_madurez': empresa.nivel_madurez,
+                'n_empleados': empresa.n_empleados,
+                'negocio_familiar': empresa.negocio_familiar,
+                'ingresos_semanales': empresa.ingresos_semanales,
+                'antiguedad': empresa.antiguedad
+            }
+            
+            df_input = pd.DataFrame([nuevo_empresario])
+            
+            if hasattr(modelo, 'predict_proba'):
+                probabilidades = modelo.predict_proba(df_input)
+                clases = modelo.classes_
+                
+                resultado = {clase: float(prob) for clase, prob in zip(clases, probabilidades[0])}
+                
+                prediccion = modelo.predict(df_input)[0]
+                resultado['prediccion'] = prediccion
+            else:
+                prediccion = modelo.predict(df_input)[0]
+                resultado = {
+                    'prediccion': prediccion,
+                    'activo': 1.0 if prediccion == 'activo' else 0.0,
+                    'latente': 1.0 if prediccion == 'latente' else 0.0,
+                    'inactivo': 1.0 if prediccion == 'inactivo' else 0.0
+                }
+            
+          
+            return resultado
+            
+        except Exception as e:
+            print(f"Error al predecir actividad: {str(e)}")
+            return {"error": str(e)}

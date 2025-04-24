@@ -25,7 +25,7 @@ from reportlab.lib.pagesizes import letter
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Image, Spacer, PageBreak
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib.units import inch
-from .Utils import DataProcessor, JsonFormatter
+from .Utils import DataProcessor
 
 class SegmentacionService:
     def __init__(self):
@@ -465,16 +465,13 @@ class GeneracionDatos:
             elementos.append(Paragraph(perfil_a_texto(perfil), estilos["Normal"]))
             elementos.append(Spacer(1, 12))
 
-        # Orden de categorías
         orden = ["activo", "latente", "inactivo"]
 
-        # Perfiles ideales
         elementos.append(Paragraph("Perfiles ideales", estilos["Heading2"]))
         elementos.append(Spacer(1, 10))
         for grupo in orden:
             agregar_perfil_narrativo(f"Ideal - {grupo.capitalize()}", perfiles_data["perfiles_ideales"][grupo])
 
-        # Perfiles múltiples
         elementos.append(Paragraph("Perfiles múltiples", estilos["Heading2"]))
         elementos.append(Spacer(1, 10))
         for grupo in orden:
@@ -524,13 +521,11 @@ class GeneracionDatos:
         plt.xlabel('Nivel de Actividad')
         plt.ylabel('Cantidad de Microempresarios')
         
-        # Agregar valores encima de cada barra
         for p in ax.patches:
             ax.annotate(f'{int(p.get_height())}', 
                     (p.get_x() + p.get_width() / 2., p.get_height()), 
                     ha='center', va='bottom')
         
-        # Guardar la gráfica en un archivo temporal
         with tempfile.NamedTemporaryFile(suffix='.png', delete=False) as tmp:
             temp_filename = tmp.name
             temp_files.append(temp_filename)
@@ -538,14 +533,11 @@ class GeneracionDatos:
         plt.savefig(temp_filename, format='png', dpi=300, bbox_inches='tight')
         plt.close()
         
-        # Agregar la imagen al PDF
         imagen = Image(temp_filename, width=6*inch, height=3.5*inch)
         elementos.append(imagen)
         
-        # Agregar un resumen de texto después de la gráfica
         elementos.append(Spacer(1, 15))
         
-        # Contar microempresarios por categoría
         activos = df[df['actividad'] == 'activo'].shape[0]
         latentes = df[df['actividad'] == 'latente'].shape[0]
         inactivos = df[df['actividad'] == 'inactivo'].shape[0]

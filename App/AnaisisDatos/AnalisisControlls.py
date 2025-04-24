@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from flask import Blueprint, jsonify, request
 import pandas as pd
 from .AnalisisService import SegmentacionService, ForecastService, InsightsService, GeneracionDatos
-from .Utils import JsonFormatter
+
 
 analisis_bp = Blueprint('analisis', __name__, url_prefix='/api/analisis')
 
