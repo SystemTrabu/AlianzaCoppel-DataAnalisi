@@ -723,7 +723,6 @@ class GeneracionDatos:
         
         # Crear una respuesta con el PDF
         response = make_response(buffer.getvalue())
-        
         # Establecer las cabeceras para la descarga
         response.headers['Content-Type'] = 'application/pdf'
         response.headers['Content-Disposition'] = 'attachment; filename=reporte_alianzacoppel.pdf'
