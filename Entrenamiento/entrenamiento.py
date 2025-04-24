@@ -16,15 +16,13 @@ import json
 plt.style.use('ggplot')
 sns.set_palette("husl")
 
-# 1. Conexión a la base de datos y extracción de datos
-engine = create_engine('postgresql://postgres:HRxlTXYjtnYgTVbehhRqwnCEnopFFegE@shuttle.proxy.rlwy.net:40252/railway')
+engine = create_engine('URL')
 
 # Cargar datos
 df_empresarios = pd.read_sql("SELECT * FROM microempresario", engine)
 df_empresas = pd.read_sql("SELECT * FROM empresas", engine)
 df_cursos = pd.read_sql('SELECT * FROM "CursosTerminados"', engine)
 
-# Preparación de los datos
 cursos_count = df_cursos.groupby('microempresario_id').size().reset_index(name='cursos_completados')
 
 df = pd.merge(df_empresarios, cursos_count, left_on='id', right_on='microempresario_id', how='left')
